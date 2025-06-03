@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "901c2c8e5c99e3e5",
+        "id": "0cfb6f1bfa032392",
         "type": "tabs",
         "children": [
           {
-            "id": "a44edc2acc4dcc05",
+            "id": "2e2c79d9dc92567f",
             "type": "leaf",
             "state": {
               "type": "markdown",
@@ -117,7 +117,7 @@
         "state": {
           "type": "outgoing-link",
           "state": {
-            "file": "Markdown笔记.md",
+            "file": "画布.canvas",
             "linksCollapsed": false,
             "unlinkedCollapsed": true
           },
@@ -131,7 +131,7 @@
         "state": {
           "type": "outline",
           "state": {
-            "file": "Markdown笔记.md",
+            "file": "画布.canvas",
             "followCursor": false,
             "showSearch": false,
             "searchQuery": ""
@@ -154,11 +154,11 @@
       "obsidian-excalidraw-plugin:新建绘图文件": false
     }
   },
-  "active": "a44edc2acc4dcc05",
+  "active": "2e2c79d9dc92567f",
   "lastOpenFiles": [
-    "Excalidraw/Drawing 2025-06-02 21.57.28.excalidraw.md",
-    "Markdown笔记.md",
     "画布.canvas",
+    "Markdown笔记.md",
+    "Excalidraw/Drawing 2025-06-02 21.57.28.excalidraw.md",
     "Excalidraw"
   ]
 }
