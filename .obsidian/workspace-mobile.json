@@ -4,21 +4,21 @@
     "type": "split",
     "children": [
       {
-        "id": "0cfb6f1bfa032392",
+        "id": "f7cd5424cdd1cf19",
         "type": "tabs",
         "children": [
           {
-            "id": "2e2c79d9dc92567f",
+            "id": "85f6784b92e38c5d",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Markdown笔记.md",
+                "file": "obsidian使用/exercise.md",
                 "mode": "source",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "Markdown笔记"
+              "title": "exercise"
             }
           }
         ]
@@ -98,7 +98,7 @@
         "state": {
           "type": "backlink",
           "state": {
-            "file": "Markdown笔记.md",
+            "file": "obsidian使用/exercise.md",
             "collapseAll": false,
             "extraContext": false,
             "sortOrder": "alphabetical",
@@ -155,10 +155,20 @@
       "mermaid-tools:Open Mermaid Toolbar": false
     }
   },
-  "active": "2e2c79d9dc92567f",
+  "active": "85f6784b92e38c5d",
   "lastOpenFiles": [
-    "画布.canvas",
+    "obsidian使用/exercise.md",
     "Markdown笔记.md",
+    "obsidian使用/TODO.md",
+    "obsidian使用/整合画布.canvas",
+    "obsidian使用/apple pencil使用技巧.md",
+    "obsidian使用",
+    "template/java.md",
+    "template/plantuml.md",
+    "template/codesnap.md",
+    "template/mermard.md",
+    "template",
+    "画布.canvas",
     "Excalidraw/Drawing 2025-06-02 21.57.28.excalidraw.md",
     "Excalidraw"
   ]
