@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "obsidian使用/TODO.md",
+                "file": "生活/baby/取名.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "TODO"
+              "title": "取名"
             }
           }
         ]
@@ -183,17 +183,21 @@
   },
   "active": "e51375c998ec8f0e",
   "lastOpenFiles": [
-    "Excalidraw/Drawing 2025-06-05 00.28.05.excalidraw.md",
-    "Excalidraw/Drawing 2025-06-02 21.57.28.excalidraw.md",
+    "生活/baby/准备.md",
+    "生活/baby/取名.md",
     "obsidian使用/TODO.md",
-    "obsidian使用/exercise.md",
+    "生活/baby",
+    "生活",
     "obsidian使用/apple pencil使用技巧.md",
+    "obsidian使用/exercise.md",
+    "obsidian使用/整合画布.canvas",
+    "Excalidraw/Drawing 2025-06-02 21.57.28.excalidraw.md",
+    "Excalidraw/Drawing 2025-06-05 00.28.05.excalidraw.md",
     "template/mermard.md",
     "template/plantuml.md",
     "template/java.md",
     "template/codesnap.md",
     "template",
-    "obsidian使用/整合画布.canvas",
     "obsidian使用",
     "Excalidraw",
     "欢迎.md"
