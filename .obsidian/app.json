@@ -1,1 +1,14 @@
-{}
+{
+  "mobileToolbarCommands": [
+    "command-palette:open",
+    "editor:set-heading",
+    "editor:toggle-bullet-list",
+    "editor:toggle-numbered-list",
+    "editor:indent-list",
+    "editor:unindent-list",
+    "editor:toggle-keyboard"
+  ],
+  "promptDelete": false,
+  "showLineNumber": true,
+  "mobilePullAction": "workspace:toggle-pin"
+}
