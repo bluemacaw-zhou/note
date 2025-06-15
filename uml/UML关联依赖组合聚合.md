@@ -1,3 +1,6 @@
+#uml
+#关联依赖
+#组合聚合
 ### 关联关系和依赖关系什么区别
 ```java
 // 关联关系 
@@ -22,10 +25,10 @@ public class OrderService {
 ```java
 // 组合关系
 // 整体与部分的关系 部分不能独立存在
-public class car ｛ 
+public class Car ｛ 
     private Engine engine;
 
-    public car() ｛
+    public Car() ｛
         engine = new Engine();
     ｝
 ｝
@@ -34,7 +37,7 @@ public class car ｛
 ```java
 // 聚合关系
 // 整体与部分的关系部分可以独立存在
-public class department ｛ 
+public class Department ｛ 
     private List <Employee> employees; // 部门和员工是聚合系
 ｝
 ```

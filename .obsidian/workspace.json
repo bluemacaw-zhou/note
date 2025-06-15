@@ -6,6 +6,7 @@
       {
         "id": "75e331bbab13d7a9",
         "type": "tabs",
+        "dimension": 54.353233830845774,
         "children": [
           {
             "id": "e51375c998ec8f0e",
@@ -13,12 +14,33 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "生活/baby/取名.md",
+                "file": "源码/druid/druid源码分析.md",
                 "mode": "source",
-                "source": false
+                "source": true
               },
               "icon": "lucide-file",
-              "title": "取名"
+              "title": "druid源码分析"
+            }
+          }
+        ]
+      },
+      {
+        "id": "1de0af556b6427d0",
+        "type": "tabs",
+        "dimension": 45.646766169154226,
+        "children": [
+          {
+            "id": "2c34d6eb5d087df5",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "input/临时文件.md",
+                "mode": "source",
+                "source": true
+              },
+              "icon": "lucide-file",
+              "title": "临时文件"
             }
           }
         ]
@@ -78,7 +100,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 267.5
   },
   "right": {
     "id": "40c17108cc5da002",
@@ -171,10 +193,7 @@
   },
   "left-ribbon": {
     "hiddenItems": {
-      "switcher:打开快速切换": false,
-      "graph:查看关系图谱": false,
       "canvas:新建白板": false,
-      "daily-notes:打开/创建今天的日记": false,
       "templates:插入模板": false,
       "command-palette:打开命令面板": false,
       "obsidian-excalidraw-plugin:新建绘图文件": false,
@@ -183,15 +202,30 @@
   },
   "active": "e51375c998ec8f0e",
   "lastOpenFiles": [
-    "生活/baby/准备.md",
+    "input/临时文件.md",
+    "源码/druid/druid源码分析.md",
+    "未命名.canvas",
+    "uml/UML关联依赖组合聚合.md",
+    "uml/UML.md",
+    "exercise/exercise.md",
+    "apple pencil/apple pencil使用技巧.md",
+    "apple pencil/TODO.md",
+    "obsidian使用/整合画布.canvas",
+    "Excalidraw/Druid链接.excalidraw.md",
+    "Excalidraw/uml.excalidraw.md",
+    "Excalidraw/test.excalidraw.md",
+    "源码/druid",
+    "源码",
+    "Excalidraw/Drawing 2025-06-12 16.48.56.excalidraw.md",
+    "Excalidraw/Drawing 2025-06-12 15.49.58.excalidraw.md",
+    "Excalidraw/Drawing 2025-06-12 11.23.56.excalidraw.md",
     "生活/baby/取名.md",
+    "生活/baby/准备.md",
     "obsidian使用/TODO.md",
     "生活/baby",
     "生活",
     "obsidian使用/apple pencil使用技巧.md",
     "obsidian使用/exercise.md",
-    "obsidian使用/整合画布.canvas",
-    "Excalidraw/Drawing 2025-06-02 21.57.28.excalidraw.md",
     "Excalidraw/Drawing 2025-06-05 00.28.05.excalidraw.md",
     "template/mermard.md",
     "template/plantuml.md",
