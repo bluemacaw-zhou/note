@@ -10,13 +10,17 @@
           {
             "id": "49f0f30729e8fc24",
             "type": "leaf",
+            "pinned": true,
             "state": {
-              "type": "excalidraw",
+              "type": "markdown",
               "state": {
-                "file": "Excalidraw/Druid链接.excalidraw.md"
+                "file": "input/临时文件.md",
+                "mode": "source",
+                "source": false
               },
-              "icon": "excalidraw-icon",
-              "title": "Druid链接.excalidraw"
+              "pinned": true,
+              "icon": "lucide-file",
+              "title": "临时文件"
             }
           }
         ]
@@ -153,22 +157,26 @@
   },
   "left-ribbon": {
     "hiddenItems": {
-      "switcher:打开快速切换": true,
-      "graph:查看关系图谱": true,
       "canvas:新建白板": false,
-      "daily-notes:打开/创建今天的日记": true,
       "templates:插入模板": false,
       "command-palette:打开命令面板": true,
       "obsidian-excalidraw-plugin:新建绘图文件": false,
-      "mermaid-tools:Open Mermaid Toolbar": false,
-      "workspaces:管理工作区布局": false
+      "mermaid-tools:Open Mermaid Toolbar": false
     }
   },
-  "active": "5f860511ecf86f87",
+  "active": "49f0f30729e8fc24",
   "lastOpenFiles": [
+    "obsidian使用/整合画布.canvas",
+    "源码/druid/druid源码分析.md",
+    "Excalidraw/Druid链接.excalidraw.md",
+    "源码/druid",
+    "源码",
+    "uml/UML关联依赖组合聚合.md",
+    "uml/UML.md",
+    "Excalidraw/test.excalidraw.md",
+    "Excalidraw/uml.excalidraw.md",
     "Excalidraw/Drawing 2025-06-12 16.48.56.excalidraw.md",
     "input/临时文件.md",
-    "Excalidraw/Druid链接.excalidraw.md",
     "apple pencil/apple pencil使用技巧.md",
     "apple pencil/TODO.md",
     "uml/基本概念.md",
@@ -194,15 +202,9 @@
     "Excalidraw/Drawing 2025-06-12 11.23.56.excalidraw.md",
     "uml",
     "Markdown笔记.md",
-    "obsidian使用/整合画布.canvas",
     "obsidian使用",
     "template/java.md",
-    "template/plantuml.md",
-    "template/codesnap.md",
-    "template/mermaid.md",
     "template",
-    "画布.canvas",
-    "Excalidraw/Drawing 2025-06-02 21.57.28.excalidraw.md",
-    "Excalidraw"
+    "画布.canvas"
   ]
 }
