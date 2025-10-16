@@ -18,3 +18,9 @@ Password: admin
 ## Mongo Express Web界面
 
 打开浏览器访问: http://localhost:8081
+
+## 终端启动
+docker exec -it mongodb mongosh -u admin -p admin --authenticationDatabase admin
+
+## url链接启动
+mongodb://admin:admin@192.168.254.129:27017/?authSource=admin
