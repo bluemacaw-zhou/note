@@ -8,7 +8,7 @@
 
 ### HBase数据结构
 
-![[HBase数据结构.png]]
+![[HBase数据结构.png]]]
 
 ### RowKey
 

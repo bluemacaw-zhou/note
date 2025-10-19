@@ -4,35 +4,21 @@
     "type": "split",
     "children": [
       {
-        "id": "a34b9fa90a5f6883",
+        "id": "63b3a6059c2b8803",
         "type": "tabs",
         "children": [
           {
-            "id": "c9d2ee8722115cbc",
+            "id": "03972ef1bf193f38",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "AI/gpt是什么.md",
+                "file": "AI/NLP vs NLU vs NLG.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "gpt是什么"
-            }
-          },
-          {
-            "id": "c862665c97fb4355",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "docker/docker-compose常用命令.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "docker-compose常用命令"
+              "title": "NLP vs NLU vs NLG"
             }
           }
         ]
@@ -193,14 +179,33 @@
       "mermaid-tools:Open Mermaid Toolbar": false
     }
   },
-  "active": "c9d2ee8722115cbc",
+  "active": "03972ef1bf193f38",
   "lastOpenFiles": [
-    "docker/mongodb/mongdb的docker-compose说明.md",
-    "docker/docker-compose常用命令.md",
-    "AI/gpt是什么.md",
-    "AI",
     "生活/baby/取名.md",
+    "生活/baby/宝宝教育.md",
+    "大数据/技术中间件概述.md",
+    "大数据/风控系统.md",
+    "大数据/pic/HBase数据结构.png",
+    "大数据/hbase/HBase.md",
+    "AI/NLP vs NLU vs NLG.md",
+    "AI/pic/NLP&NLU&NLG.png",
+    "AI/python可视化分析库.md",
+    "大数据/pic",
+    "input/临时文件.md",
+    "源码/druid/druid源码分析.md",
+    "apple pencil/apple pencil使用技巧.md",
+    "AI/pic",
+    "AI/新建文件夹",
+    "投资/复盘.md",
+    "mongodb/mongodb基本概念.md",
+    "mongodb/mongodb基本shell操作.md",
+    "mongodb",
+    "AI/gpt是什么.md",
+    "docker/docker-compose常用命令.md",
     "生活/养鱼/设备保养.md",
+    "temp",
+    "docker/mongodb/mongdb的docker-compose说明.md",
+    "AI",
     "生活/养鱼/水质.md",
     "投资/霍华德投资笔记/泡沫.md",
     "投资/霍华德投资笔记/天才也不行.md",
@@ -210,29 +215,11 @@
     "投资/霍华德投资笔记/风险2.md",
     "投资/霍华德投资笔记/风险1.md",
     "投资/霍华德投资笔记/如何寻找机会.md",
-    "投资/霍华德投资笔记/预测.md",
-    "投资/霍华德投资笔记/微观经济学入门.md",
-    "投资/霍华德投资笔记/钟摆理论(1990年伊拉克危机后的反弹).md",
-    "复盘.md",
-    "投资/霍华德投资笔记/超额回报之道.md",
     "投资/霍华德投资笔记",
-    "投资/五级投资策略.md",
-    "投资/衰退期的资产.md",
-    "uml/UML.md",
     "未命名 1.base",
     "未命名.base",
     "未命名.canvas",
-    "大数据/hbase/HBase.md",
-    "投资/美债.md",
-    "投资/高通.md",
-    "投资/台积电.md",
     "投资",
-    "生活/养鱼",
-    "大数据/hbase/HBase数据结构.png",
-    "大数据/hive",
-    "大数据/hbase",
-    "大数据",
-    "obsidian使用/整合画布.canvas",
-    "源码/druid"
+    "obsidian使用/整合画布.canvas"
   ]
 }
