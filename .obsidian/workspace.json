@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "maven/maven-dependency-management-guide.md",
+                "file": "mongodb/mongodb基本shell操作.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "maven-dependency-management-guide"
+              "title": "mongodb基本shell操作"
             }
           }
         ]
@@ -181,8 +181,10 @@
   },
   "active": "03972ef1bf193f38",
   "lastOpenFiles": [
-    "docker/docker-compose常用命令.md",
+    "mongodb/mongodb基本概念.md",
+    "mongodb/mongodb基本shell操作.md",
     "maven/maven-dependency-management-guide.md",
+    "docker/docker-compose常用命令.md",
     "maven",
     "docker/chromadb/docker-compose.yml",
     "docker/chromadb/新建 文本文档.txt",
@@ -204,8 +206,6 @@
     "AI/pic",
     "AI/新建文件夹",
     "投资/复盘.md",
-    "mongodb/mongodb基本概念.md",
-    "mongodb/mongodb基本shell操作.md",
     "mongodb",
     "AI/gpt是什么.md",
     "生活/养鱼/设备保养.md",
