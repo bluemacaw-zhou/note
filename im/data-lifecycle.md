@@ -1,3 +1,4 @@
+```plantuml
 @startuml 数据生命周期V4-MongoDB+ClickHouse
 !theme plain
 
@@ -48,3 +49,4 @@ start
 stop
 
 @enduml
+```
