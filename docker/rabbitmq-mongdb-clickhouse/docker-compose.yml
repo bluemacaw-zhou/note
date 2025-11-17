@@ -1,9 +1,9 @@
-version: '3.7'
+version: '3.8'
 
 services:
   # MongoDB 8.0.15 副本集 - CDC 需要副本集模式
   mongodb:
-    image: 10.100.6.129:8987/mongo:8.0.15
+    image: mongo:8.0.15
     container_name: mongodb
     ports:
       - "27017:27017"
@@ -18,7 +18,7 @@ services:
        chmod 400 /data/mongodb-keyfile &&
        exec docker-entrypoint.sh mongod --replSet rs0 --bind_ip_all --keyFile /data/mongodb-keyfile"
     volumes:
-      - ~/workspace/docker/mongo-clickhouse/mongodb/data:/data/db
+      - E:/workspace/docker/rabbitmq-mongo-clickhouse/mongodb/data:/data/db
       - ./init-scripts/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
       - ./init-scripts/mongodb-keyfile:/tmp/mongodb-keyfile:ro
     networks:
@@ -31,7 +31,7 @@ services:
 
   # ClickHouse 24.3 - LTS 版本，与 MongoDB 8.x 兼容
   clickhouse:
-    image: 10.100.6.129:8987/clickhouse/clickhouse-server:24.3
+    image: clickhouse/clickhouse-server:24.3
     container_name: clickhouse
     ports:
       - "8123:8123"  # HTTP 接口
@@ -42,7 +42,7 @@ services:
       CLICKHOUSE_PASSWORD: admin
       CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
     volumes:
-      - ~/workspace/docker/mongo-clickhouse/clickhouse/data:/var/lib/clickhouse
+      - E:/workspace/docker/rabbitmq-mongo-clickhouse/clickhouse/data:/var/lib/clickhouse
       - ./init-scripts/clickhouse-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     networks:
       - data-pipeline
@@ -58,7 +58,7 @@ services:
 
   # ClickHouse 官方 Web 管理界面 - Tabix
   clickhouse-tabix:
-    image: 10.100.6.129:8987/spoonest/clickhouse-tabix-web-client:latest
+    image: spoonest/clickhouse-tabix-web-client:latest
     container_name: clickhouse-tabix
     ports:
       - "8124:80"
@@ -69,7 +69,7 @@ services:
 
   # RabbitMQ - 消息队列（业务服务通过消费者模式处理数据）
   rabbitmq:
-    image: 10.100.6.129:8987/rabbitmq:3.12-management
+    image: rabbitmq:3.12-management
     container_name: rabbitmq
     ports:
       - "5672:5672"   # AMQP 协议端口
@@ -78,7 +78,7 @@ services:
       RABBITMQ_DEFAULT_USER: admin
       RABBITMQ_DEFAULT_PASS: admin
     volumes:
-      - ~/workspace/docker/mongo-clickhouse/rabbitmq/data:/var/lib/rabbitmq
+      - E:/workspace/docker/rabbitmq-mongo-clickhouse/rabbitmq/data:/var/lib/rabbitmq
     networks:
       - data-pipeline
     healthcheck:
