@@ -11,11 +11,11 @@ title 发送消息流程 V4 - MongoDB + ClickHouse方案
 actor 用户A as Client
 participant "客户端" as ClientApp
 participant "推送服务" as PushSvc
-participant "消息存储服务" as StorageSvc
 participant "MQ队列" as MQ
+participant "消息存储服务" as StorageSvc
 database "MongoDB\n(主库)" as MongoDB
-database "ClickHouse\n(分析库)" as ClickHouse
 participant "Change Stream\n同步服务" as ChangeStream
+database "ClickHouse\n(分析库)" as ClickHouse
 
 == 1. 消息发送 ==
 
@@ -200,5 +200,4 @@ note right
 end note
 
 @enduml
-
 ```
