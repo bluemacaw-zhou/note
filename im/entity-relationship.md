@@ -1,3 +1,4 @@
+```plantuml
 @startuml 实体关系图V4-MongoDB方案
 !theme plain
 skinparam linetype ortho
@@ -152,3 +153,4 @@ Session ||--o{ SessionView
 Message ||--|| Analytics 
 
 @enduml
+```
