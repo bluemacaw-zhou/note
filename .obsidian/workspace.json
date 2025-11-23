@@ -4,21 +4,21 @@
     "type": "split",
     "children": [
       {
-        "id": "63b3a6059c2b8803",
+        "id": "871aed3a5a6b8256",
         "type": "tabs",
         "children": [
           {
-            "id": "03972ef1bf193f38",
+            "id": "e0ecb28448e4b6a0",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "git/设置多个远端仓库.md",
+                "file": "git/obsidian整合copilot后git如何调整.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "设置多个远端仓库"
+              "title": "obsidian整合copilot后git如何调整"
             }
           }
         ]
@@ -78,7 +78,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 267.5
+    "width": 253.5
   },
   "right": {
     "id": "40c17108cc5da002",
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Markdown笔记.md",
+                "file": "git/obsidian整合copilot后git如何调整.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Markdown笔记 的反向链接列表"
+              "title": "obsidian整合copilot后git如何调整 的反向链接列表"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Markdown笔记.md",
+                "file": "git/obsidian整合copilot后git如何调整.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Markdown笔记 的出链列表"
+              "title": "obsidian整合copilot后git如何调整 的出链列表"
             }
           },
           {
@@ -142,13 +142,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "obsidian使用/TODO.md",
+                "file": "git/obsidian整合copilot后git如何调整.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "TODO 的大纲"
+              "title": "obsidian整合copilot后git如何调整 的大纲"
             }
           },
           {
@@ -157,17 +157,26 @@
             "state": {
               "type": "mermaid-toolbar-view",
               "state": {},
-              "icon": "lucide-ghost",
-              "title": "mermaid-toolbar-view"
+              "icon": "trident-custom",
+              "title": "Mermaid Toolbar"
+            }
+          },
+          {
+            "id": "e3a4fb8c4edac86e",
+            "type": "leaf",
+            "state": {
+              "type": "copilot-chat-view",
+              "state": {},
+              "icon": "message-square",
+              "title": "Copilot"
             }
           }
         ],
-        "currentTab": 3
+        "currentTab": 5
       }
     ],
     "direction": "horizontal",
-    "width": 589.5,
-    "collapsed": true
+    "width": 589.5
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -176,49 +185,56 @@
       "templates:插入模板": false,
       "command-palette:打开命令面板": false,
       "obsidian-excalidraw-plugin:新建绘图文件": false,
-      "mermaid-tools:Open Mermaid Toolbar": false
+      "mermaid-tools:Open Mermaid Toolbar": false,
+      "copilot:Open Copilot Chat": false,
+      "obsidian-textgenerator-plugin:Generate Text!": false,
+      "obsidian-textgenerator-plugin:Text Generator: Templates Packages Manager": false,
+      "bmo-chatbot:BMO Chatbot": false,
+      "smart-connections:Open: Smart Chat": false,
+      "smart-connections:Smart Connections: Open connections view": false,
+      "smart-connections:Smart Connections: Open random connection": true
     }
   },
-  "active": "03972ef1bf193f38",
+  "active": "e0ecb28448e4b6a0",
   "lastOpenFiles": [
-    "docker/rabbitmq-mongdb-clickhouse/README.md",
+    "copilot/copilot-conversations/这是一个测试的提问_尝试在obsidian整合claude_并有选择性的将@20251123_110748.md",
+    "git/obsidian整合copilot后git如何调整.md",
+    "test.md",
+    "copilot/copilot-conversations",
+    "copilot",
+    "copilot/copilot-custom-prompts/Emojify.md",
+    "BMO/Profiles/BMO.md",
+    "BMO/Profiles",
+    "BMO",
+    "textgenerator/configs/llm/config_11-23103232.json.md",
+    "textgenerator/configs/llm",
+    "textgenerator/configs",
+    "textgenerator",
+    "textgenerator/templates/trash/default/getEmailPos.md",
+    "textgenerator/templates/trash/default/getEmailNeg.md",
     "git/设置多个远端仓库.md",
-    "docker/docker-compose常用命令.md",
-    "mongodb/mongodb聚合基本shell操作.md",
-    "mongodb/mongodb基本概念.md",
-    "mongodb/mongodb查询基本shell操作.md",
-    "mongodb/mongodb基本shell操作.md",
-    "mongodb/mongodb索引基本shell操作.md",
-    "maven/maven-dependency-management-guide.md",
-    "maven",
-    "docker/chromadb/docker-compose.yml",
-    "docker/chromadb/新建 文本文档.txt",
-    "docker/mongodb/mongdb的docker-compose说明.md",
-    "docker/chromadb",
-    "AI/NLP vs NLU vs NLG.md",
-    "生活/baby/取名.md",
-    "生活/baby/宝宝教育.md",
-    "大数据/技术中间件概述.md",
-    "大数据/风控系统.md",
+    "textgenerator/templates/trash/default/summarizeLarge.md",
+    "textgenerator/templates/trash/default/summarize.md",
+    "textgenerator/templates/trash/default/simplify.md",
+    "textgenerator/templates/trash/default/rewrite.md",
+    "textgenerator/templates/trash/default/getTitles.md",
+    "textgenerator/templates/trash/default/getTags.md",
+    "textgenerator/templates/trash/default/getParagraph.md",
+    "textgenerator/templates/trash/default/getOutline.md",
+    "textgenerator/templates/trash/default/getIdeas.md",
+    "textgenerator/templates/trash/default",
+    "textgenerator/templates/trash",
+    "textgenerator/templates/default/getTags.md",
+    "textgenerator/templates/default/getEmailNeg.md",
+    "textgenerator/templates/default/rewrite.md",
+    "textgenerator/templates/default/getOutline.md",
+    "textgenerator/templates/default/getTitles.md",
+    "textgenerator/templates/default/simplify.md",
+    "textgenerator/templates/default/getParagraph.md",
+    "textgenerator/templates/default/summarizeLarge.md",
+    "textgenerator/templates/default",
     "大数据/pic/HBase数据结构.png",
-    "大数据/hbase/HBase.md",
     "AI/pic/NLP&NLU&NLG.png",
-    "AI/python可视化分析库.md",
-    "大数据/pic",
-    "input/临时文件.md",
-    "源码/druid/druid源码分析.md",
-    "apple pencil/apple pencil使用技巧.md",
-    "AI/pic",
-    "AI/新建文件夹",
-    "投资/复盘.md",
-    "mongodb",
-    "AI/gpt是什么.md",
-    "生活/养鱼/设备保养.md",
-    "temp",
-    "AI",
-    "生活/养鱼/水质.md",
-    "投资/霍华德投资笔记/泡沫.md",
-    "投资/霍华德投资笔记/天才也不行.md",
     "未命名.canvas",
     "obsidian使用/整合画布.canvas"
   ]
