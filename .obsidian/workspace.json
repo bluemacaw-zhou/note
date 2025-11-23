@@ -4,21 +4,21 @@
     "type": "split",
     "children": [
       {
-        "id": "871aed3a5a6b8256",
+        "id": "3b57b854ef107adc",
         "type": "tabs",
         "children": [
           {
-            "id": "e0ecb28448e4b6a0",
+            "id": "de4ad874c63ff28a",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "git/obsidian整合copilot后git如何调整.md",
+                "file": "im/data-lifecycle.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "obsidian整合copilot后git如何调整"
+              "title": "data-lifecycle"
             }
           }
         ]
@@ -53,7 +53,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "docker",
+                "query": "",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -78,7 +78,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 253.5
+    "width": 241.5
   },
   "right": {
     "id": "40c17108cc5da002",
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "git/obsidian整合copilot后git如何调整.md",
+                "file": "obsidian使用/emoji toolbar使用方法.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "obsidian整合copilot后git如何调整 的反向链接列表"
+              "title": "emoji toolbar使用方法 的反向链接列表"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "git/obsidian整合copilot后git如何调整.md",
+                "file": "obsidian使用/emoji toolbar使用方法.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "obsidian整合copilot后git如何调整 的出链列表"
+              "title": "emoji toolbar使用方法 的出链列表"
             }
           },
           {
@@ -142,23 +142,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "git/obsidian整合copilot后git如何调整.md",
+                "file": "obsidian使用/emoji toolbar使用方法.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "obsidian整合copilot后git如何调整 的大纲"
-            }
-          },
-          {
-            "id": "1887dec64231e104",
-            "type": "leaf",
-            "state": {
-              "type": "mermaid-toolbar-view",
-              "state": {},
-              "icon": "trident-custom",
-              "title": "Mermaid Toolbar"
+              "title": "emoji toolbar使用方法 的大纲"
             }
           },
           {
@@ -172,7 +162,7 @@
             }
           }
         ],
-        "currentTab": 5
+        "currentTab": 4
       }
     ],
     "direction": "horizontal",
@@ -180,6 +170,7 @@
   },
   "left-ribbon": {
     "hiddenItems": {
+      "omnisearch:Omnisearch": false,
       "bases:创建新数据库": false,
       "canvas:新建白板": false,
       "templates:插入模板": false,
@@ -187,53 +178,48 @@
       "obsidian-excalidraw-plugin:新建绘图文件": false,
       "mermaid-tools:Open Mermaid Toolbar": false,
       "copilot:Open Copilot Chat": false,
-      "obsidian-textgenerator-plugin:Generate Text!": false,
-      "obsidian-textgenerator-plugin:Text Generator: Templates Packages Manager": false,
-      "bmo-chatbot:BMO Chatbot": false,
-      "smart-connections:Open: Smart Chat": false,
-      "smart-connections:Smart Connections: Open connections view": false,
-      "smart-connections:Smart Connections: Open random connection": true
+      "iconic:打开规则书": false
     }
   },
-  "active": "e0ecb28448e4b6a0",
+  "active": "de4ad874c63ff28a",
   "lastOpenFiles": [
+    "并发编程/线程池优化指南.md",
+    "im/data-lifecycle.md",
+    "im/entity-relationship.md",
+    "exercise/exercise.md",
+    "uml/UML.md",
+    "uml/UML关联依赖组合聚合.md",
+    "obsidian使用/emoji toolbar使用方法.md",
+    "mongodb/mongodb索引基本shell操作.md",
+    "mongodb/mongodb聚合基本shell操作.md",
+    "mongodb/mongodb基本shell操作.md",
+    "mongodb/mongodb基本概念.md",
+    "mongodb/mongodb查询基本shell操作.md",
+    "maven/maven-dependency-management-guide.md",
+    "input/临时文件.md",
+    "im/flow-sync-messages.md",
+    "im/flow-session-visibility.md",
+    "im/flow-send-message.md",
+    "im/flow-query-messages.md",
+    "im/flow-mark-read.md",
+    "im/flow-query-messages.puml",
+    "docker/rabbitmq-mongdb-clickhouse/README.md",
+    "docker/docker-compose常用命令.md",
+    "docker/mongodb/mongdb的docker-compose说明.md",
+    "copilot/copilot-conversations/obsidian展示yml文件@20251123_213029.md",
     "copilot/copilot-conversations/这是一个测试的提问_尝试在obsidian整合claude_并有选择性的将@20251123_110748.md",
-    "git/obsidian整合copilot后git如何调整.md",
-    "test.md",
+    "apple pencil/TODO.md",
+    "apple pencil/apple pencil使用技巧.md",
+    "大数据/pic/HBase数据结构.png",
     "copilot/copilot-conversations",
     "copilot",
-    "copilot/copilot-custom-prompts/Emojify.md",
-    "BMO/Profiles/BMO.md",
     "BMO/Profiles",
     "BMO",
-    "textgenerator/configs/llm/config_11-23103232.json.md",
     "textgenerator/configs/llm",
     "textgenerator/configs",
     "textgenerator",
-    "textgenerator/templates/trash/default/getEmailPos.md",
-    "textgenerator/templates/trash/default/getEmailNeg.md",
-    "git/设置多个远端仓库.md",
-    "textgenerator/templates/trash/default/summarizeLarge.md",
-    "textgenerator/templates/trash/default/summarize.md",
-    "textgenerator/templates/trash/default/simplify.md",
-    "textgenerator/templates/trash/default/rewrite.md",
-    "textgenerator/templates/trash/default/getTitles.md",
-    "textgenerator/templates/trash/default/getTags.md",
-    "textgenerator/templates/trash/default/getParagraph.md",
-    "textgenerator/templates/trash/default/getOutline.md",
-    "textgenerator/templates/trash/default/getIdeas.md",
     "textgenerator/templates/trash/default",
     "textgenerator/templates/trash",
-    "textgenerator/templates/default/getTags.md",
-    "textgenerator/templates/default/getEmailNeg.md",
-    "textgenerator/templates/default/rewrite.md",
-    "textgenerator/templates/default/getOutline.md",
-    "textgenerator/templates/default/getTitles.md",
-    "textgenerator/templates/default/simplify.md",
-    "textgenerator/templates/default/getParagraph.md",
-    "textgenerator/templates/default/summarizeLarge.md",
-    "textgenerator/templates/default",
-    "大数据/pic/HBase数据结构.png",
     "AI/pic/NLP&NLU&NLG.png",
     "未命名.canvas",
     "obsidian使用/整合画布.canvas"

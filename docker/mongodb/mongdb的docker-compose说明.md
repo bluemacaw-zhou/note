@@ -1,5 +1,3 @@
-# mongdb的docker-compose说明
-
 ## 查看 MongoDB 日志
 docker-compose logs -f mongodb
 
@@ -13,7 +11,6 @@ Port: 27017
 Username: admin
 Password: admin
 连接字符串: mongodb://admin:admin@localhost:27017/
-
 
 ## Mongo Express Web界面
 

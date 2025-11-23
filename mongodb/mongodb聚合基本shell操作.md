@@ -1,22 +1,22 @@
-### 检索books集合中所有文档计数
+## 检索books集合中所有文档计数
 
 ```shell
 db.books.countDocuments()
 ```
 
-### 计算与查询匹配的所有文档
+## 计算与查询匹配的所有文档
 
 ```shell
 db.books.countDocuments({favCount:{$gt:50}})
 ```
 
-### 返回不同type的数组
+## 返回不同type的数组
 
 ```shell
 db.books.distinct("type")
 ```
 
-### 返回收藏数大于90的文档不同type的数组
+## 返回收藏数大于90的文档不同type的数组
 
 ```shell
 db.books.distinct("type",{favCount:{$gt:90}})
@@ -32,7 +32,7 @@ db.books.distinct("type",{favCount:{$gt:90}})
 | $skip    | 分页   |                 |
 | $limit   | 分页   |                 |
 
-### $project
+## $project
 
 ```shell
 # 将文档的title字段起个别名name后输出
@@ -42,7 +42,7 @@ db.books.aggregate([{$project:{name:"$title"}}])
 db.books.aggregate([{$project:{name:"$title",_id:0,type:1,author:1}}])
 ```
 
-### $match
+## $match
 
 在实际应用中尽可能将$match放在管道的前面位置。
 这样有两个好处：
@@ -60,7 +60,7 @@ db.books.aggregate([
 ])
 ```
 
-### $count
+## $count
 
 ```shell
 db.books.aggregate([
@@ -69,7 +69,7 @@ db.books.aggregate([
 ])
 ```
 
-### $group
+## $group
 
 group阶段的内存限制为100M。默认情况下，如果stage超过此限制，group将产生错
 误

@@ -1,4 +1,3 @@
-# Maven 依赖管理最佳实践：Spring Boot Parent 继承问题解决方案
 
 ## 背景
 
