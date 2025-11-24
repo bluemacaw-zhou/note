@@ -3,6 +3,14 @@
 .obsidian/plugins/copilot/data.json
 copilot/copilot-conversations/
 
+# Obsidian插件配置文件
+.obsidian/plugins/*/data.json
+
+# Obsidian工作区文件
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/workspaces.json
+
 # === 个人化文件（不适合共享）===
 .obsidian/workspace*.json
 .obsidian/graph.json

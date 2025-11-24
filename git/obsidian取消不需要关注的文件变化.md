@@ -6,6 +6,9 @@
 # 删除.obsidian/plugins下所有data.json文件
 git rm --cached .obsidian/plugins/*/data.json
 
+# 通配符不起作用时 使用如下命令
+find .obsidian/plugins -name "data.json" -type f -delete
+
 # 删除workspace相关文件
 git rm --cached .obsidian/workspace.json
 git rm --cached .obsidian/workspace-mobile.json  
