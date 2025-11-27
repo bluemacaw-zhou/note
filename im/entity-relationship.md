@@ -1,156 +1,163 @@
 ```plantuml
-@startuml 实体关系图V4-MongoDB方案
+@startuml 完整实体关系图-IM系统
 !theme plain
 skinparam linetype ortho
 
-title 实体关系图 - MongoDB + ClickHouse方案
+title IM系统完整实体关系图
 
-' ============ MongoDB实体 ============
-
-package "MongoDB主库(OLTP)" {
-
-  entity "Session\n(会话表)" as Session {
-    * _id: ObjectId <<PK>>
+' ============ 组织架构实体 ============
+package "组织架构" {
+  entity "Company\n(公司)" as Company {
+    * id: String <<PK>>
     --
-    * session_type: String // private | group
-    * create_time: Date
-    update_time: Date
-    ---
-    索引:
-    - relation_key (唯一)
-  }
-
-  entity "messages_YYYYMM\n(消息Collection按月分表)" as Message {
-    * _id: String <<PK>> // msg_id
-    --
-    <b>核心字段:</b>
-    * sessionId: String // 会话id
-    * from_id: Long // 发送者ID
-    * contact_id: Long // 联系人ID
-    * contact_type: Integer // 联系人类型(1私聊/2群聊)
-    * msg_type: Integer // 消息类型
-    * msg_time: String // 消息时间
-    --
-    <b>公司信息:</b>
-    from_company_id: String // 发送者公司ID
-    from_company: String // 发送者公司名
-    contact_company_id: String // 联系人公司ID(群聊为空)
-    contact_company: String // 联系人公司名(群聊为空)
-    --
-    <b>消息内容:</b>
-    content: String // 消息内容
-    content_version: Integer // 内容版本
-    --
-    <b>客户端信息:</b>
-    client_msg_id: String // 客户端消息ID
-    client_info: String // 客户端信息
-    --
-    <b>状态字段:</b>
-    deleted: Integer // 删除标记
-    status: Integer // 消息状态
-    old_msg_id: String // 现行消息唯一ID
-  }
-
-  entity "session_view\n(会话视图)" as SessionView {
-    * _id: String <<PK>> // ObjectId或雪花ID
-    --
-    * user_id: Long // 用户ID
-    * session_id: Long // 会话ID
-    * session_type: String // 会话类型
-    --
-    <b>时间范围(支持多次进出):</b>
-    * start_time: Date // 本次加入时间
-    end_time: Date // 本次退出时间(null=在会话中)
-    --
-    <b>消息范围(本次进出):</b>
-    start_seq: Long // 本次可见起始序号
-    end_seq: Long // 本次可见结束序号
-    --
-    <b>已读状态:</b>
-    last_read_seq: Long // 最后已读序号
-    last_read_time: Date
-    --
-     <b>同步状态:</b>
-    last_sync_seq: Long // 最后同步序号
-    last_sync_time: Date
-    --
-    <b>统计信息(重写轻读):</b>
-    unread_count: Long // 未读数
-    unsync_count: Long // 未同步数
-    last_message_id: String
-    last_message_preview: String
-    last_message_time: Date
-    --
+    * name: String // 公司名称
+    * code: String // 公司编码
+    * type: String // 公司类型
+    * status: Integer // 状态
     create_time: Date
     update_time: Date
-    ---
-    <b>多记录设计:</b>
-    同一用户同一会话可有多条记录
-    每次进出创建新记录
-    end_time=null为当前会话
-    end_time!=null为历史会话
   }
 
+  entity "User\n(用户)" as User {
+    * id: Long <<PK>>
+    --
+    * company_id: String <<FK>>
+    * username: String
+    * nickname: String
+    * email: String
+    * phone: String
+    * avatar: String
+    * status: Integer // 在线状态
+    create_time: Date
+    update_time: Date
+  }
+
+  entity "Group\n(群组)" as Group {
+    * id: String <<PK>>
+    --
+    * name: String // 群名称
+    * avatar: String // 群头像
+    create_time: Date
+    update_time: Date
+    --
+    说明:
+    - 群组的详细信息由外部系统维护
+    - 存储系统只需知道群的基本展示信息
+  }
 }
 
-' ============ ClickHouse实体 ============
-
-package "ClickHouse分析库(OLAP)" {
-
-  entity "message_analytics\n(消息分析表-单表按月分区)" as Analytics {
-    * _id: String <<PK>> // msg_id
+' ============ 通信核心实体 ============
+package "通信核心" {
+  entity "Session\n(会话)" as Session {
+    * id: String <<PK>>
     --
-    <b>核心字段:</b>
-    * sessionId: String // 会话id
+    * session_type: String // private/group
+    * version: Long // 会话版本号(每条新消息+1)
+    create_time: Date
+    update_time: Date // 最新消息时间(用于会话排序)
+    --
+    说明:
+    - 群聊场景: session_id = group_id
+    - 私聊场景: session_id 由 from_id 和 to_id 推导生成
+    - version: 逻辑时钟,单调递增,用于计算未读数/未同步数
+  }
+
+  entity "UserSessionState\n(用户会话状态)" as UserSessionState {
+    * id: String <<PK>>
+    --
+    * user_id: Long <<FK>>
+    * session_id: String <<FK>>
+    * session_type: String // private/group（冗余字段，避免JOIN）
+    --
+    last_read_version: Long // 最后已读版本号
+    join_version: Long // 加入时的会话版本号(可见性起点)
+    leave_version: Long // 离开时的会话版本号(可见性终点)
+    --
+    join_time: Date // 加入时间
+    leave_time: Date // 退出时间(null=在会话中)
+    create_time: Date
+    update_time: Date
+    --
+    说明:
+    - 未读数计算:
+      正常: Session.version - last_read_version
+      已离开: leave_version - last_read_version
+    - 可见性范围: join_version <= visible_version <= leave_version
+    - join_version: 用户加入时记录Session.version,标记可见性起点
+    - leave_version: 用户离开时记录Session.version,标记可见性终点
+    - 在线时由客户端自维护,定期上报已读版本号
+    - 离线时通过版本号对比计算未读数
+    - 唯一约束: (user_id, session_id)
+  }
+
+  entity "DeviceSyncState\n(设备同步状态)" as DeviceSyncState {
+    * id: String <<PK>>
+    --
+    * user_id: Long <<FK>>
+    * session_id: String <<FK>>
+    * device_id: String // 设备唯一标识
+    --
+    last_sync_version: Long // 该设备最后同步版本号
+    leave_version: Long // 离开时的会话版本号(冻结未同步数)
+    --
+    leave_time: Date // 设备所属用户离开时间
+    create_time: Date
+    update_time: Date
+    --
+    说明:
+    - 未同步数计算:
+      正常: Session.version - last_sync_version
+      已离开: leave_version - last_sync_version
+    - leave_version: 设备所属用户离开时记录Session.version,冻结未同步数上限
+    - 在线设备通过ACK机制实时更新同步版本号
+    - 离线设备上线时通过版本号对比计算未同步数
+    - 唯一约束: (device_id, session_id)
+  }
+
+  entity "Message\n(消息)" as Message {
+    * id: String <<PK>>
+    --
+    * session_id: String <<FK>>
+    * seq: Long // 消息对应的会话版本号(用于增量拉取)
+    * old_msg_id: String // 现行的消息唯一id
+    --
     * from_id: Long // 发送者ID
-    * contact_id: Long // 联系人ID
-    * contact_type: Integer // 联系人类型(1私聊/2群聊)
-    * msg_type: Integer // 消息类型
-    * msg_time: String // 消息时间
+    * to_id: Long // 接收者ID（私聊场景，群聊为null）
+    * from_company: String // 发送者公司（快照）
+    * to_company: String // 接收者公司（私聊场景，群聊为null）
     --
-    <b>公司信息:</b>
-    from_company_id: String // 发送者公司ID
-    from_company: String // 发送者公司名
-    contact_company_id: String // 联系人公司ID(群聊为空)
-    contact_company: String // 联系人公司名(群聊为空)
+    * msg_type: Integer
+    * content: String
+    * msg_time: Date // 消息时间（毫秒级）
     --
-    <b>消息内容:</b>
-    content: String // 消息内容
-    content_version: Integer // 内容版本
-    --
-    <b>客户端信息:</b>
-    client_msg_id: String // 客户端消息ID
+    client_msg_id: String // 客户端消息ID（去重）
     client_info: String // 客户端信息
     --
-    <b>状态字段:</b>
     deleted: Integer // 删除标记
     status: Integer // 消息状态
-    old_msg_id: String // 现行消息唯一ID
-    ---
-    <b>其它辅助查询的字段(可扩展):</b>
-    ...
-    ---
-    <b>分区策略:</b>
-    PARTITION BY toYYYYMM(create_date)
-    - 202501, 202502, 202503...
-    ---
-    <b>TTL自动清理:</b>
-    TTL create_date + 10 YEAR DELETE
-    ---
-    <b>支持查询:</b>
-    ✅ 合规审计(公司+时间+类型)
-    ✅ 多维组合(外部+文件+时长)
+    --
+    说明:
+    - seq: 会话内单调递增,用于消息排序
+    - version: 与Session.version对应,用于增量拉取
+    - from_id/to_id: 推导session_id，方便微观层面查询
+    - from_company/to_company: 冗余字段，用于按公司查询
+    - 群聊场景: to_id=null, to_company=null
+    - 快照设计: 记录发送时的公司，不随用户变动而改变
+    - 唯一约束: (session_id, seq)
   }
-
 }
 
-' ============ 关系 ============
+' ============ 关系定义 ============
 
-Session ||--o{ Message 
+' 组织架构关系
+Company ||--o{ User : "雇用"
 
-
-Session ||--o{ SessionView 
-Message ||--|| Analytics 
-
+' 通信关系
+Group ||--|| Session : "关联会话(1:1, session_id=group_id)"
+User ||--o{ UserSessionState : "参与会话(1:N)"
+Session ||--o{ UserSessionState : "成员(1:N)"
+UserSessionState ||--o{ DeviceSyncState : "设备视图(1:N)"
+User ||--o{ Message : "发送"
+Session ||--o{ Message : "包含(1:N)"
 @enduml
 ```
