@@ -58,85 +58,18 @@ note right of StorageSvc
   ✅ 冷热分离: 旧collection移HDD
 end note
 
-alt 会话类型判断
+StorageSvc -> MongoDB: **开始MongoDB事务**
+note right
+    事务保证原子性:
+    1. 插入消息
+    2. 更新会话
+end note
 
-    == 2.1 私聊消息 ==
+StorageSvc -> MongoDB: db.messages_202503.insertOne()
+StorageSvc -> MongoDB: db.session.updateOne()
+note right: 更新消息表和会话表 会话版本+1
 
-    StorageSvc -> MongoDB: **开始MongoDB事务**
-    note right
-        事务保证原子性:
-        1. 插入消息
-        2. 更新2个用户会话视图
-    end note
-
-    StorageSvc -> MongoDB: db.messages_202503.insertOne(\n  {_id, session_id, from_id, to_id,\n   msg_type, content, version,\n   voice: {url, duration...},  // V4语音消息\n   card: {title, actions...},  // V5卡片消息\n   create_time, create_date}\n)
-    StorageSvc -> MongoDB: db.session_view.updateOne(\n  {user_id: from_id, session_id},\n  {$inc: {total_count: 1},\n   $set: {last_message_id, last_message_preview,\n          last_message_time, last_sender_id}},\n  {upsert: true}\n)
-    note right: 更新发送者会话视图
-
-    StorageSvc -> MongoDB: db.session_view.updateOne(\n  {user_id: to_id, session_id},\n  {$inc: {total_count: 1, unread_count: 1},\n   $set: {last_message_id, last_message_preview,\n          last_message_time, last_sender_id}},\n  {upsert: true}\n)
-    note right: 更新接收者会话视图
-
-    StorageSvc -> MongoDB: **提交事务**
-    note right
-        事务耗时: 10-15ms
-        - insertOne: 3ms
-        - updateOne×2: 5ms
-        - 事务提交: 2-7ms
-    end note
-
-    == 2.2 群聊消息 ==
-
-    StorageSvc -> MongoDB: **开始MongoDB事务**
-
-    StorageSvc -> MongoDB: db.messages_202503.insertOne(\n  {_id, session_id, from_id,\n   msg_type, content, create_time}\n)
-    note right: 插入群消息
-
-  
-    StorageSvc -> MongoDB: db.session_view.updateOne(\n  {user_id: from_id, session_id},\n  {$inc: {total_count: 1},\n   $set: {last_message_id, ...}}\n)
-    note right: 更新发送者视图(1人)
-
-    StorageSvc -> MongoDB: **提交事务**
-
-    note right
-        事务耗时: 0-5ms
-        - insertOne: 3ms
-        - updateOne: 2ms
-        - 事务提交: 0-10ms
-    end note
-
-    StorageSvc -> MQ: 【异步】发送视图更新事件
-
-    MQ -> StorageSvc: 消费消息事件
-
-    StorageSvc -> MongoDB: **开始MongoDB事务**
-
-    StorageSvc -> StorageSvc: 查询群成员列表(推送服务携带/Redis缓存)
-    note right
-        假设500人群
-        获取所有成员ID(不区分活跃/不活跃)
-    end note
-
-    StorageSvc -> MongoDB: db.session_view.updateMany(\n  {user_id: {$in: [member_ids]},\n   session_id,\n   end_time: null},\n  {$inc: {unread_count: 1},\n   $set: {last_message_id, ...}}\n)
-    note right
-        批量更新所有成员视图(499人)
-
-        <b>更新策略调整:</b>
-        ✅ 不再区分活跃/不活跃用户
-        ✅ 消息来了就更新所有成员视图
-        ✅ 条件: end_time=null (当前在会话中)
-
-        MongoDB updateMany性能优异
-        耗时: ~10ms
-    end note
-
-    StorageSvc -> MongoDB: **提交事务**
-    note right
-        事务耗时: 15-25ms
-        - updateMany(499人): 10ms
-        - 事务提交: 0-10ms
-    end note
-
-end
+StorageSvc -> MongoDB: **提交事务**
 
 StorageSvc --> MQ: ACK消息处理完成
 
