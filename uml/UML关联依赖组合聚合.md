@@ -10,6 +10,7 @@ public class student ｛
     private Teacher teacher; // 关联关系
 }
 ```
+^student
 
 ```java
 // 依赖关系 
@@ -20,6 +21,8 @@ public class OrderService {
     ｝
 }
 ```
+^OrderService
+
 ## 组合关系和聚合关系有什么差别
 
 ```java
