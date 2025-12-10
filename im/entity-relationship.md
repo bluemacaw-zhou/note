@@ -70,6 +70,7 @@ package "通信核心" {
     * session_type: String // private/group（冗余字段，避免JOIN）
     --
     last_read_version: Long // 最后已读版本号
+    last_read_time: Date // 最后已读时间(用于查询撤回消息,避免映射)
     join_version: Long // 加入时的会话版本号(可见性起点)
     leave_version: Long // 离开时的会话版本号(可见性终点)
     --
@@ -80,13 +81,15 @@ package "通信核心" {
     --
     说明:
     - 未读数计算:
-      正常: Session.version - last_read_version
-      已离开: leave_version - last_read_version
+      正常: Session.version - last_read_version - recalled_count
+      已离开: leave_version - last_read_version - recalled_count
+    - recalled_count: 查询msg_time > last_read_time且status=撤回的消息数
+    - last_read_time: 冗余字段,避免通过last_read_version映射查询msg_time
     - 可见性范围: join_version <= visible_version <= leave_version
     - join_version: 用户加入时记录Session.version,标记可见性起点
     - leave_version: 用户离开时记录Session.version,标记可见性终点
-    - 在线时由客户端自维护,定期上报已读版本号
-    - 离线时通过版本号对比计算未读数
+    - 在线时由客户端自维护,定期上报已读版本号和时间
+    - 离线时通过版本号对比和时间窗口查询计算精确未读数
     - 唯一约束: (user_id, session_id)
   }
 
@@ -100,7 +103,7 @@ package "通信核心" {
     last_sync_version: Long // 该设备最后同步版本号
     leave_version: Long // 离开时的会话版本号(冻结未同步数)
     --
-    leave_time: Date // 设备所属用户离开时间
+    leave_time: Date // 退群或者解除好友的时间戳
     create_time: Date
     update_time: Date
     --
@@ -123,6 +126,7 @@ package "通信核心" {
     --
     * from_id: Long // 发送者ID
     * to_id: Long // 接收者ID（私聊场景，群聊为null）
+    * receiver_ids: Array<Long> // 接收者ID列表（用于获取会话成员）
     * from_company: String // 发送者公司（快照）
     * to_company: String // 接收者公司（私聊场景，群聊为null）
     --
@@ -134,14 +138,21 @@ package "通信核心" {
     client_info: String // 客户端信息
     --
     deleted: Integer // 删除标记
-    status: Integer // 消息状态
+    status: Integer // 消息状态（包含撤回状态）
+    --
+    create_time: Date // 创建时间
+    update_time: Date // 更新时间（撤回时会更新）
     --
     说明:
     - seq: 会话内单调递增,用于消息排序
     - version: 与Session.version对应,用于增量拉取
+    - receiver_ids: 所有接收人员ID列表,用于缓存过期标记
     - from_id/to_id: 推导session_id，方便微观层面查询
     - from_company/to_company: 冗余字段，用于按公司查询
     - 群聊场景: to_id=null, to_company=null
+    - status: 记录消息状态,包含是否撤回
+    - update_time: 撤回消息时会更新此字段
+    - 撤回是操作不是消息: 撤回不占用seq,不让Session.version增加
     - 快照设计: 记录发送时的公司，不随用户变动而改变
     - 唯一约束: (session_id, seq)
   }
