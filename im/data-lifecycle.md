@@ -1,95 +1,150 @@
 ```plantuml
-@startuml 数据生命周期V4-MongoDB+ClickHouse
+@startuml 数据生命周期V5-MongoDB+ClickHouse+Redis
 !theme plain
 
-title 数据生命周期 - MongoDB + ClickHouse方案
+title 数据生命周期 - MongoDB + ClickHouse + Redis消息镜像方案
 
-|RabbitMQ|
+|推送服务|
 
 start
 
-:原始消息到达;
+:T0: 用户发送消息;
 
 |消息存储服务|
 
-:接收消息
-执行业务逻辑处理;
+:同步调用存储服务
+执行MongoDB事务;
 
 |MongoDB主库|
 
-:T0: 消息创建
-写入当月collection;
+:T0: 消息写入
+写入当月collection
+messages_YYYYMM;
+note right
+    <b>MongoDB事务操作:</b>
+    1. 检查并创建Session
+    2. 检查并创建UserSessionState(私聊)
+    3. 插入消息(MongoDB生成_id)
+    4. Session.version++
+
+    <b>按月分collection:</b>
+    messages_202503
+    messages_202502
+    messages_202501
+end note
+
+|推送服务|
+
+:T0+50ms: 存储完成
+WebSocket推送消息;
+note right
+    推送给会话在线成员
+end note
 
 |MongoDB Change Stream|
 
-:T0+毫秒级: Change Stream触发;
+:T0+毫秒级:
+Change Stream监听到insert事件;
+note right
+    <b>Change Stream同步服务:</b>
+    - 监听所有 messages_* collection
+    - operationType: insert
+    - 实时捕获消息变更
+end note
 
-|消息存储服务|
+|Change Stream同步服务|
 
-:监听到变更事件
-执行计算逻辑
-(聚合、统计等);
+:转换文档格式
+标准化消息;
 
-if (是否为群聊消息?) then (是)
+:发送到MQ队列;
+note right
+    <b>MQ作用:</b>
+    - 解耦上下游
+    - 支持多个消费者
+    - 消息持久化
+
+    <b>分区键:</b>
+    使用 session_id
+    保证同一会话消息顺序
+end note
+
+|MQ队列|
+
+fork
+
+    |Redis缓存服务|
+
+    :消费消息事件
+    构建缓存;
+
+    :LPUSH + LTRIM + EXPIRE;
+    note right
+        <b>Redis List 操作:</b>
+
+        PIPELINE
+          LPUSH msg_cache:{session_id} {json}
+          LTRIM msg_cache:{session_id} 0 149
+          EXPIRE msg_cache:{session_id} 604800
+        EXEC
+
+        <b>缓存策略:</b>
+        - 所有会话(私聊+群聊)都缓存
+        - 只保留最新150条
+        - 7天过期(604800秒)
+        - 实时更新
+
+        <b>设计理念:</b>
+        - 缓存是消息镜像
+        - 不维护消息状态
+        - 撤回消息也正常缓存
+        - 客户端本地处理状态
+    end note
 
     |Redis缓存|
 
-    :更新Redis缓存;
+    :T0+100ms:
+    缓存更新完成;
+
+fork again
+
+    |ClickHouse同步服务|
+
+    :消费消息事件
+    批量写入ClickHouse;
     note right
-        <b>Redis缓存维护(仅群聊):</b>
+        <b>批量策略:</b>
+        - 累积1000条消息
+        - 或等待1秒
+        - 以先到达者为准
 
-        操作: ZADD
-        Key: session:{session_id}:messages
-        Score: message_seq
-        Value: 消息JSON字符串
-
-        <b>示例:</b>
-        ZADD session:123:messages
-        1001 '{"_id":"msg1","content":"..."}'
-
-        <b>限制缓存大小:</b>
-        ZREMRANGEBYRANK session:123:messages
-        0 -1001  // 只保留最新1000条
-
-        <b>设置过期时间:</b>
-        EXPIRE session:123:messages 604800
-        (7天 = 604800秒)
-
-        <b>说明:</b>
-        - 只缓存群聊消息
-        - 私聊消息不缓存
-        - 实时更新,查询高效
+        <b>提升吞吐量</b>
     end note
 
-else (否,私聊消息)
+    |ClickHouse分析库|
 
-    |消息存储服务|
-
-    :跳过Redis缓存;
+    :T0+1-3秒:
+    写入message_analytics表
+    按月分区;
     note right
-        私聊消息不缓存
-        直接查询MongoDB即可
+        <b>ClickHouse用途:</b>
+        - 合规查询
+        - 复杂条件搜索
+        - 按公司/类型/时间组合查询
+
+        <b>分区策略:</b>
+        按月自动分区
+        PARTITION 202503
+
+        <b>性能:</b>
+        - 列存储+压缩(10:1)
+        - TTL自动删除10年前数据
+        - 查询耗时: 200-500ms
     end note
 
-endif
+end fork
 
-|消息存储服务|
-
-:计算完成
-投递到RabbitMQ;
-
-|RabbitMQ|
-
-:计算结果消息队列;
-
-|ClickHouse消费服务|
-
-:T0+秒级: 自动消费消息;
-
-|ClickHouse分析库|
-
-:写入message_analytics表
-用于分析查询;
+|数据生命周期完成|
 
 stop
 
