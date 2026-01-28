@@ -15,17 +15,17 @@ note right
   <b>服务端核心职责:</b>
 
   1. 记录同步状态:
-     - DeviceSyncState.last_sync_version
+     - DeviceSubscription.last_sync_version
      - 每个设备的消息同步进度
 
   2. 记录红点状态:
-     - UserSessionState.last_read_version
+     - UserSubscription.last_read_version
      - 用户的消息已读进度
 
   3. 推送变化:
-     - 推送有新消息的会话列表
-     - 推送会话对应的消息数据
-     - 携带 session_version
+     - 推送有新消息的频道列表
+     - 推送频道对应的消息数据
+     - 携带 channel_version
 
   4. 提供数据源:
      - 客户端请求时提供消息数据
@@ -81,10 +81,10 @@ end note
 note right
   <b>连续性检测:</b>
 
-  推送 seq == client.session_version + 1
+  推送 seq == client.channel_version + 1
   → 连续 ✅
 
-  推送 seq > client.session_version + 1
+  推送 seq > client.channel_version + 1
   → 不连续，有 gap ❌
 end note
 
@@ -93,7 +93,7 @@ if (消息 seq 连续?) then (是)
     :标记消息可直接处理;
     note right
       <b>消息连续:</b>
-      seq == client.session_version + 1
+      seq == client.channel_version + 1
       可以跳过滑动窗口
       直接进入消息处理层
     end note
@@ -106,8 +106,8 @@ if (消息 seq 连续?) then (是)
     note right
       <b>检测到 gap，缓冲处理:</b>
 
-      gap = 推送 seq - client.session_version - 1
-      缺失消息: [client.session_version+1, 推送seq-1]
+      gap = 推送 seq - client.channel_version - 1
+      缺失消息: [client.channel_version+1, 推送seq-1]
 
       <b>示例:</b>
       本地 version = 100
@@ -116,7 +116,7 @@ if (消息 seq 连续?) then (是)
       缺失: [101, 102, 103, 104]
 
       <b>滑动窗口结构:</b>
-      sliding_window[session_id] = {
+      sliding_window[channel_id] = {
         min_seq: 101,
         max_seq: 105,
         missing: [101,102,103,104],
@@ -158,26 +158,79 @@ if (消息 seq 连续?) then (是)
       note right
         <b>超时拉取策略:</b>
 
-        GET /messages/range
+        请求参数:
         {
-          session_id: "AB",
-          min_seq: 101,
-          max_seq: 104
+          channel_id: "AB",
+          since_version: 100,
+          until_version: 104
         }
 
-        <b>MongoDB 精确查询区间</b>
+        <b>说明:</b>
+        精确查询缺失的消息区间
       end note
 
       |服务端|
       :查询并返回缺失消息;
 
       |Layer 1: 预处理层|
-      :填充滑动窗口;
-      :窗口头部稳定;
-      note right
-        超时拉取后窗口补齐
-        准备送到消息处理层
-      end note
+
+      if (拉取成功?) then (是)
+
+        :填充滑动窗口;
+        :窗口头部稳定;
+        note right
+          超时拉取后窗口补齐
+          准备送到消息处理层
+        end note
+
+      else (否,拉取失败)
+
+        :标记网络异常;
+        note right
+          <b>拉取失败处理:</b>
+
+          拉取失败意味着网络出现问题
+
+          <b>处理策略:</b>
+          1. 放弃当前窗口中的缺失消息
+          2. 将窗口中已收到的最新消息展示
+          3. 计算并更新红点
+          4. 等待心跳或重新登录唤醒
+          5. 重新请求同步流程
+        end note
+
+        :取出窗口中最新消息;
+        note right
+          <b>降级处理:</b>
+
+          窗口: [gap, gap, gap, 105]
+          取出: [105] (只取最新收到的消息)
+
+          <b>说明:</b>
+          虽然有gap,但优先展示最新消息
+          避免用户长时间看不到新消息
+        end note
+
+        :送入消息处理层;
+        note right
+          <b>特殊标记:</b>
+          message.has_gap = true
+
+          提示用户消息可能不连续
+        end note
+
+        :等待网络恢复;
+        note right
+          <b>恢复时机:</b>
+          1. 心跳检测网络恢复
+          2. 用户重新登录
+
+          <b>恢复操作:</b>
+          重新发起订阅同步流程
+          补全缺失的消息
+        end note
+
+      endif
 
     endif
 
@@ -218,7 +271,7 @@ repeat
     <b>统一消费逻辑:</b>
 
     1. 更新版本号:
-       client.session_version++
+       client.channel_version++
        client.lastSyncVersion++
 
     2. 计算红点:
@@ -241,7 +294,7 @@ repeat while (还有消息?) is (是)
 note right
   <b>本地消息副本已更新:</b>
 
-  ✅ client.session_version 已更新
+  ✅ client.channel_version 已更新
   ✅ client.lastSyncVersion 已更新
   ✅ 红点已计算
   ✅ UI 已更新
@@ -253,30 +306,30 @@ end note
 
 :进入后处理层;
 
-:检查该会话滑动窗口状态;
+:检查该频道滑动窗口状态;
 note right
   <b>检查规则:</b>
-  检查 sliding_window[session_id] 是否存在
+  检查 sliding_window[channel_id] 是否存在
 
   如果存在滑动窗口:
-  说明该会话还有消息在等待
+  说明该频道还有消息在等待
   需要将当前变更归并到待上报队列
   等待窗口稳定后统一上报
 
   如果不存在滑动窗口:
-  说明该会话消息已稳定
+  说明该频道消息已稳定
   可以立即上报
 end note
 
-if (该会话有滑动窗口?) then (是)
+if (该频道有滑动窗口?) then (是)
 
   :归并到待上报队列;
   note right
     <b>归并逻辑:</b>
 
-    pending_reports[session_id] = {
-      session_id: "AB",
-      session_version: 105,
+    pending_reports[channel_id] = {
+      channel_id: "AB",
+      channel_version: 105,
       last_read_version: 100,
       last_sync_version: 105,
       report_type: "sync_only",
@@ -300,21 +353,24 @@ else (否，无滑动窗口)
     <b>准备上报:</b>
 
     {
-      session_id: "AB",
-      session_version: 105,
+      channel_id: "AB",
+      channel_version: 105,
       last_read_version: 100,
       last_sync_version: 105,
       report_type: "sync_only"
     }
   end note
 
-  :POST /api/session/report;
+  :POST /api/subscription/report;
 
   |服务端|
-  :更新 DeviceSyncState;
+  :更新 DeviceSubscription;
   note right
-    DeviceSyncState(user, device):
-      last_sync_version: 100 → 105 ✅
+    <b>变更前:</b>
+    last_sync_version: 100
+
+    <b>变更后:</b>
+    last_sync_version: 105
   end note
 
   if (上报成功?) then (是)
@@ -334,9 +390,9 @@ else (否，无滑动窗口)
     note right
       <b>失败处理:</b>
 
-      pending_reports[session_id] = {
-        session_id: "AB",
-        session_version: 105,
+      pending_reports[channel_id] = {
+        channel_id: "AB",
+        channel_version: 105,
         last_read_version: 100,
         last_sync_version: 105,
         report_type: "sync_only",
@@ -390,9 +446,9 @@ stop
 ### 一、服务端职责
 
 **核心职责：**
-1. **记录同步状态**：`DeviceSyncState.last_sync_version` - 每个设备的消息同步进度
-2. **记录红点状态**：`UserSessionState.last_read_version` - 用户的消息已读进度
-3. **推送变化**：推送有新消息的会话列表和消息数据，携带 `session_version`
+1. **记录同步状态**：`DeviceSubscription.last_sync_version` - 每个设备的消息同步进度
+2. **记录红点状态**：`UserSubscription.last_read_version` - 用户的消息已读进度
+3. **推送变化**：推送有新消息的频道列表和消息数据，携带 `channel_version`
 4. **提供数据源**：Redis 缓存（最新150条）、MongoDB（历史消息）
 
 **服务端不负责：**
@@ -421,7 +477,7 @@ stop
 
 **数据结构：**
 ```javascript
-sliding_window[session_id] = {
+sliding_window[channel_id] = {
   min_seq: 101,                  // 缺失的最小 seq
   max_seq: 105,                  // 当前最大 seq
   missing: [101, 102, 103, 104], // 缺失列表
@@ -455,7 +511,7 @@ sliding_window[session_id] = {
 // 无论消息来自推送还是滑动窗口，都执行相同逻辑
 function processMessage(message) {
   // 1. 更新版本号
-  client.session_version++;
+  client.channel_version++;
   client.lastSyncVersion++;
 
   // 2. 计算红点
@@ -493,9 +549,9 @@ function processMessage(message) {
 
 **数据结构：**
 ```javascript
-pending_reports[session_id] = {
-  session_id: "AB",
-  session_version: 105,
+pending_reports[channel_id] = {
+  channel_id: "AB",
+  channel_version: 105,
   last_read_version: 100,
   last_sync_version: 105,
   report_type: "sync_only",
@@ -511,7 +567,7 @@ pending_reports[session_id] = {
    - 无窗口 → 立即上报
 
 2. **归并上报**：
-   - 同一会话的多次变更归并为一次上报
+   - 同一频道的多次变更归并为一次上报
    - 避免频繁上报
 
 3. **失败重试**：
@@ -571,7 +627,7 @@ Layer 2 处理完成 → Layer 3 (发现有窗口，归并到待上报队列)
    - 保证消息顺序
 
 6. **归并上报机制**
-   - 检查会话是否有滑动窗口
+   - 检查频道是否有滑动窗口
    - 有窗口 → 归并等待
    - 无窗口 → 立即上报
    - 避免频繁上报，减少网络开销
@@ -579,3 +635,4 @@ Layer 2 处理完成 → Layer 3 (发现有窗口，归并到待上报队列)
 7. **5秒超时保护**
    - 防止无限等待
    - 主动拉取补齐
+   - 拉取失败时降级处理：展示最新消息并等待网络恢复
