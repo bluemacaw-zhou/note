@@ -78,13 +78,13 @@ fork
     :消费消息事件
     构建缓存;
 
-    :LPUSH + LTRIM + EXPIRE;
+    :ZADD + ZREMRANGEBYRANK + EXPIRE;
     note right
-        <b>Redis List 操作:</b>
+        <b>Redis Sorted Set 操作:</b>
 
         PIPELINE
-          LPUSH msg_cache:{session_id} {json}
-          LTRIM msg_cache:{session_id} 0 149
+          ZADD msg_cache:{session_id} {seq} {json}
+          ZREMRANGEBYRANK msg_cache:{session_id} 0 -151
           EXPIRE msg_cache:{session_id} 604800
         EXEC
 
@@ -93,12 +93,14 @@ fork
         - 只保留最新150条
         - 7天过期(604800秒)
         - 实时更新
+        - 以 seq 为 score，支持序号区间查询 ✅
 
         <b>设计理念:</b>
         - 缓存是消息镜像
         - 不维护消息状态
         - 撤回消息也正常缓存
         - 客户端本地处理状态
+        - 支持按序号区间补档 ✅
     end note
 
     |Redis缓存|
