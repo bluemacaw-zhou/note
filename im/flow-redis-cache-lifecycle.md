@@ -1,323 +1,379 @@
 ```plantuml
-@startuml Redis消息缓存构建流程
+@startuml 发送消息流程V5-MongoDB同步方案
 !theme plain
 skinparam backgroundColor #FFFFFF
 skinparam handwritten false
 skinparam defaultFontSize 13
 skinparam arrowThickness 2
 
-title Redis消息缓存创建与重建流程
+title 发送消息流程 - MongoDB + ClickHouse同步方案
 
+actor 用户A as Client
+participant "客户端" as ClientApp
+participant "推送服务" as PushSvc
+participant "消息存储服务" as StorageSvc
 database "MongoDB\n(主库)" as MongoDB
 participant "Change Stream\n同步服务" as ChangeStream
-participant "MQ队列\n(Kafka/RabbitMQ)" as MQ
-participant "Redis缓存服务\n(消费者)" as CacheSvc
-database "Redis" as Redis
+participant "MQ队列" as MQ
+database "ClickHouse\n(分析库)" as ClickHouse
+database "Redis\n(缓存)" as Redis
 
-== 1. 新消息触发缓存创建/更新 ==
+== 1. 消息发送与存储（同步） ==
 
-MongoDB -> ChangeStream: Change Stream监听\n新消息插入事件
+Client -> ClientApp: 输入消息内容
+ClientApp -> PushSvc: POST /messages/send
 note right
-  <b>监听范围:</b>
-  - 所有 messages_* collection
-  - operationType: insert
-
-  <b>监听到的消息:</b>
+  <b>请求参数:</b>
   {
-    _id: ObjectId("..."),
-    seq: 12345,
     channel_id: "AB",
     content: "你好",
-    from_id: "A",
     msg_type: "text",
-    msg_time: "2025-03-10 10:05:30",
-    status: 0
+    from_id: "A",
+    client_msg_id: "xxx"
   }
 end note
 
-ChangeStream -> ChangeStream: 转换文档格式
+PushSvc -> PushSvc: 查询频道在线成员
 note right
-  <b>标准化消息格式:</b>
+  <b>查询内容:</b>
+  查询频道在线成员(用于推送)
+
+  <b>说明:</b>
+  - 群聊场景: 多个在线成员
+  - 私聊场景: 对方是否在线
+end note
+
+PushSvc -> StorageSvc: 同步调用存储服务
+note right
+  <b>请求体:</b>
   {
-    msg_id: ObjectId转字符串,
-    seq: 12345,
     channel_id: "AB",
     content: "你好",
-    from_id: "A",
     msg_type: "text",
-    msg_time: "2025-03-10 10:05:30",
-    status: 0
+    from_id: "A",
+    client_msg_id: "xxx"
   }
 
   <b>说明:</b>
-  保留所有客户端需要的字段
+  推送服务等待存储完成
 end note
 
-ChangeStream -> MQ: 实时发送消息事件
-note right
-  <b>发送到MQ:</b>
-  topic: message_change_events
+== 2. MongoDB 事务存储 ==
 
-  <b>消息体:</b>
+StorageSvc -> StorageSvc: 计算collection名称\n= messages_YYYYMM(create_time)
+
+note right of StorageSvc
+  <b>按月分collection示例:</b>
+  2025-01-15消息 → messages_202501
+  2025-02-20消息 → messages_202502
+  2025-03-10消息 → messages_202503
+
+  **优势:**
+  ✅ 清理历史: DROP collection秒级
+  ✅ 归档方便: 整表导出
+  ✅ 冷热分离: 旧collection移HDD
+end note
+
+StorageSvc -> MongoDB: 开始MongoDB事务
+note right
+    <b>事务保证原子性:</b>
+    1. 检查并创建Channel(如不存在)
+    2. 检查并创建UserSubscription(私聊场景)
+    3. 插入消息(MongoDB生成_id)
+    4. 更新Channel的message_version
+end note
+
+StorageSvc -> MongoDB: 检查Channel是否存在
+note right
+  查询Channel表中是否存在channel_id记录
+end note
+
+alt Channel不存在
+
+    StorageSvc -> MongoDB: 创建Channel
+    note right
+      <b>变更前:</b>
+      无记录
+
+      <b>变更后:</b>
+      channel_id: "AB"
+      channel_type: "direct"
+      message_version: 0
+      create_time: 当前时间
+      update_time: 当前时间
+    end note
+
+    alt 私聊场景 (channel_type = direct)
+
+        StorageSvc -> MongoDB: 批量创建UserSubscription
+        note right
+          <b>为频道双方初始化订阅:</b>
+
+          <b>变更前:</b>
+          无记录
+
+          <b>变更后:</b>
+          UserSubscription(user_A):
+            user_id: "A"
+            channel_id: "AB"
+            channel_type: "direct"
+            last_read_version: 0
+            last_read_time: null
+            join_version: 0
+            join_time: 当前时间
+
+          UserSubscription(user_B):
+            user_id: "B"
+            channel_id: "AB"
+            channel_type: "direct"
+            last_read_version: 0
+            last_read_time: null
+            join_version: 0
+            join_time: 当前时间
+
+          <b>说明:</b>
+          - 批量插入
+          - 唯一约束: (user_id, channel_id)
+          - 初始 last_read_version = 0
+        end note
+
+    else 群聊场景 (channel_type = group/private)
+
+        note right
+          <b>群聊处理:</b>
+
+          UserSubscription不在发送消息时创建
+          而是在以下时机创建:
+          1. 用户首次进入群聊
+          2. 用户被邀请入群
+          3. 用户主动加群
+
+          <b>原因:</b>
+          - 群成员可能很多,批量创建成本高
+          - 按需创建更高效
+        end note
+
+    end
+
+end
+
+StorageSvc -> MongoDB: 插入消息
+note right
+  <b>插入消息到按月分collection:</b>
+
+  collection: messages_202503
+  MongoDB自动生成_id (ObjectId)
+  并分配单调递增的seq字段
+
+  <b>seq生成策略:</b>
+  原子递增 Channel.message_version
+  seq = Channel.message_version + 1
+
+  <b>特点:</b>
+  - 频道内单调递增
+  - 保证唯一性
+  - 无需额外放号服务
+end note
+
+StorageSvc -> MongoDB: 更新Channel版本号
+note right
+  <b>变更前:</b>
+  message_version: 12344
+
+  <b>变更后:</b>
+  message_version: 12345
+  update_time: 当前时间
+
+  <b>说明:</b>
+  版本号即为消息seq
+end note
+
+StorageSvc -> MongoDB: 提交事务
+
+MongoDB --> StorageSvc: 返回消息结果
+note left
+  <b>返回内容:</b>
   {
-    event_type: "insert",
+    msg_id: ObjectId("..."),
+    seq: 12345,
+    channel_version: 12345,
+    msg_time: "2025-03-10 10:05:30"
+  }
+
+  <b>说明:</b>
+  seq = channel.message_version
+  msg_id = MongoDB ObjectId
+end note
+
+StorageSvc --> PushSvc: 同步返回存储结果
+note left
+  <b>返回给推送服务:</b>
+  {
+    success: true,
+    msg_id: ObjectId("..."),
+    seq: 12345,
+    channel_version: 12345,
+    msg_time: "2025-03-10 10:05:30"
+  }
+
+  <b>推送服务等待存储完成</b>
+end note
+
+== 3. WebSocket 推送 ==
+
+PushSvc -> PushSvc: 构建推送消息
+note right
+  <b>推送内容包含:</b>
+  - msg_id: MongoDB ObjectId
+  - seq: 消息序号
+  - channel_version: 频道最新版本
+  - content, msg_type等
+
+  <b>推送对象:</b>
+  频道在线成员
+end note
+
+PushSvc -> ClientApp: WebSocket推送消息
+note left
+  <b>推送内容:</b>
+  {
+    type: "new_message",
     msg_id: "...",
     seq: 12345,
     channel_id: "AB",
-    content: "你好",
+    channel_version: 12345,
     from_id: "A",
-    msg_type: "text",
-    msg_time: "2025-03-10 10:05:30",
-    status: 0,
-    timestamp: "2025-03-10 10:05:31"
+    content: "你好",
+    msg_time: "10:05:30"
   }
 
-  <b>说明:</b>
-  - 不批量缓冲，实时发送
-  - 使用 channel_id 作为分区键
-  - 保证同一频道消息顺序
+  <b>延迟:</b>
+  存储完成后立即推送
+  总延迟: 50-100ms
 end note
 
-== 2. Redis缓存服务消费 ==
+ClientApp --> Client: 显示新消息
 
-MQ -> CacheSvc: 消费消息事件
-note right
-  <b>消费者:</b>
-  - consumer_group: redis_cache_group
-  - 消费 MQ 中的消息变更事件
-end note
-
-CacheSvc -> CacheSvc: 构建缓存消息对象
-note right
-  <b>缓存的消息格式 (JSON):</b>
+PushSvc --> ClientApp: 200 OK - 发送成功
+note left
+  <b>响应体:</b>
   {
-    "msg_id": "...",
-    "seq": 12345,
-    "from_id": "A",
-    "msg_type": "text",
-    "content": "你好",
-    "msg_time": "2025-03-10 10:05:30",
-    "status": 0
+    success: true,
+    msg_id: "...",
+    seq: 12345,
+    channel_version: 12345,
+    msg_time: "10:05:30"
+  }
+end note
+
+== 4. 自动同步到ClickHouse和Redis(异步) ==
+
+MongoDB -> ChangeStream: Change Stream监听\noperationType=insert
+
+note right of ChangeStream
+  <b>MongoDB Change Stream:</b>
+  - 原生支持,无需第三方组件
+  - 实时监听INSERT/UPDATE/DELETE
+  - 支持断点续传(Resume Token)
+  - 可监听所有messages_*collection
+end note
+
+ChangeStream -> ChangeStream: 转换文档格式
+
+note right
+  <b>转换示例:</b>
+  MongoDB:
+  {
+    _id: ObjectId("..."),
+    msg_type: "voice",
+    voice: {url, duration, transcription}
   }
 
-  <b>说明:</b>
-  - 序列化为 JSON 字符串
-  - 只保留客户端必需字段
-  - 减少内存占用
-end note
-
-CacheSvc -> Redis: Pipeline操作(原子性)
-note right
-  <b>操作步骤:</b>
-
-  key: msg_cache:{channel_id}
-  例如: msg_cache:AB
-
-  1. 添加消息到有序集合
-     score: seq (12345)
-     value: JSON序列化的消息
-
-  2. 保留最新150条
-     删除排序最前面的旧消息
-     只保留排名靠后的150条
-
-  3. 刷新过期时间为7天
-     TTL: 604800秒 (7 * 24 * 3600)
-
-  <b>说明:</b>
-  Pipeline保证原子性执行
-end note
-
-Redis -> Redis: 执行Pipeline并更新缓存
-note right
-  <b>变更前(缓存不存在):</b>
-  msg_cache:AB → 不存在
-
-  <b>变更后(缓存创建):</b>
-  msg_cache:AB = {
-    score: 12345,
-    value: {"seq":12345, "content":"你好", ...}
+  转换为:
+  {
+    msg_id: "...",
+    msg_type: "voice",
+    voice_url: "...",
+    voice_duration: 15,
+    voice_transcription: "..."
   }
-  TTL: 604800秒
+end note
 
-  <b>或</b>
+ChangeStream -> ChangeStream: 批量缓冲(1000条或1秒)
 
-  <b>变更前(缓存已存在):</b>
-  msg_cache:AB = {
-    12196: {...},  // 最旧
-    ...
-    12344: {...}   // 最新
+ChangeStream -> MQ: 发送消息变更事件
+note right
+  <b>MQ作用:</b>
+  - 解耦 Change Stream 和下游
+  - 支持多个消费者
+  - 削峰填谷
+  - 消息持久化
+
+  <b>事件内容:</b>
+  {
+    msg_id: "...",
+    seq: 12345,
+    channel_id: "AB",
+    channel_version: 12345,
+    ...其他字段
   }
-  共150条，TTL: 300000秒
-
-  <b>变更后(缓存更新):</b>
-  msg_cache:AB = {
-    12197: {...},  // 12196被淘汰
-    ...
-    12344: {...},
-    12345: {"seq":12345, "content":"你好", ...}  // 新增
-  }
-  共150条，TTL: 604800秒(刷新)
-
-  <b>说明:</b>
-  - 有序集合按seq自动排序
-  - 支持按seq范围查询
-  - 每次新消息都刷新TTL
 end note
 
-Redis --> CacheSvc: Pipeline执行成功
+par ClickHouse同步 和 Redis缓存更新 并行
 
-CacheSvc -> MQ: ACK消息
-note right
-  确认消息消费成功
-  MQ移除该消息
-end note
+    MQ -> ClickHouse: 消费消息事件
+    note right
+      <b>消费者1: ClickHouse同步</b>
 
-== 3. 缓存重建时机 ==
+      INSERT INTO message_analytics
+      VALUES (...)
 
-note over MongoDB, Redis
-  <b>缓存创建与重建的核心机制</b>
+      同步性能:
+      - 延迟: 1-3秒
+      - 吞吐: 10万条/分钟
+      - 失败自动重试
+    end note
 
-  <b>触发条件(唯一):</b>
-  ✅ Change Stream监听到新消息插入
-  ✅ Redis缓存服务消费到insert事件
-  ✅ 执行Pipeline操作更新缓存
+    ClickHouse -> ClickHouse: 写入按月分区\nPARTITION 202503
+    note right
+      <b>ClickHouse分区:</b>
+      - 按月自动分区(202501, 202502...)
+      - 列存储+ZSTD压缩(10:1)
+      - TTL自动删除10年前数据
 
-  <b>不触发条件:</b>
-  ❌ 客户端读取缓存
-  ❌ 缓存过期
-  ❌ 消息撤回
+      <b>查询性能:</b>
+      - 合规查询: 200-500ms
+      - 复杂组合: 800ms-2s
+      - 支持任意维度 ✅
+    end note
 
-  <b>设计理念:</b>
-  - 缓存随消息产生自动维护
-  - 与客户端读取行为解耦
-  - 不活跃频道不占用缓存空间
-end note
+    MQ -> Redis: 消费消息事件
+    note right
+      <b>消费者2: Redis缓存服务</b>
 
-MongoDB -> ChangeStream: 新消息产生
-note right
-  <b>场景示例:</b>
-  频道AB已经7天没有消息
-  缓存已过期被删除
+      <b>Pipeline操作:</b>
+      key: msg_cache:{channel_id}
+      1. 添加消息到有序集合
+         score: seq
+         value: JSON序列化的消息
+      2. 保留最新150条
+      3. 刷新过期时间为7天(604800秒)
 
-  现在产生一条新消息
-  seq: 15000
-end note
+      <b>缓存策略:</b>
+      - 所有频道(私聊+群聊)都缓存
+      - 只保留最新150条
+      - 7天过期
+      - 实时更新
+      - 以seq为score，支持序号区间查询
 
-ChangeStream -> MQ: 发送insert事件
+      <b>设计理念:</b>
+      - 缓存是消息镜像
+      - 不维护消息状态
+      - 客户端本地处理状态
+      - 支持按序号区间补档
+    end note
 
-MQ -> CacheSvc: 消费消息事件
-
-CacheSvc -> Redis: Pipeline操作
-note right
-  <b>缓存自动重建:</b>
-
-  变更前:
-  msg_cache:AB → 不存在(已过期)
-
-  变更后:
-  msg_cache:AB = {
-    score: 15000,
-    value: {"seq":15000, ...}
-  }
-  TTL: 604800秒
-
-  <b>效果:</b>
-  - 缓存不存在时自动创建
-  - 缓存存在时追加消息
-  - 缓存过期时重新激活
-  - 始终保持最新150条
-end note
-
-== 4. Redis过期与清理 ==
-
-Redis -> Redis: TTL倒计时
-note right
-  <b>过期机制:</b>
-
-  每次新消息刷新TTL为7天
-  如果7天内没有新消息:
-  - TTL倒计时到0
-  - Redis自动删除key
-
-  <b>内存回收:</b>
-  - 惰性删除: 访问时检查过期
-  - 定期删除: 后台随机抽查过期key
-end note
-
-note over Redis
-  <b>缓存过期示例:</b>
-
-  变更前:
-  msg_cache:AB = {150条消息}
-  TTL: 10秒
-
-  7天内无新消息...
-
-  变更后:
-  msg_cache:AB → 已删除
-  TTL: -2 (不存在)
-
-  <b>效果:</b>
-  - 不活跃频道自动清理
-  - 节省内存空间
-  - 下次新消息产生时自动重建
-end note
-
-== 关键设计总结 ==
-
-note over MongoDB, Redis
-  <b>1. 缓存创建与重建机制(核心)</b>
-  ✅ 唯一触发条件: 新消息产生
-  ✅ 流程: MongoDB → Change Stream → MQ → Redis缓存服务
-  ✅ 缓存不存在时自动创建
-  ✅ 缓存存在时追加消息
-  ✅ 缓存过期时重新激活
-  ❌ 不在客户端读取时创建/重建
-  ❌ 不在缓存过期时重建
-  ❌ 不在消息撤回时重建
-
-  <b>2. 数据结构</b>
-  - 使用有序集合(Sorted Set)
-  - score = seq(消息序号)
-  - value = JSON序列化的消息
-  - 自动按seq升序排列
-  - 支持按seq范围查询
-
-  <b>3. 容量控制</b>
-  - 每次插入后保持最新150条
-  - 自动淘汰seq最小的旧消息
-  - 150条约15-30KB/频道
-
-  <b>4. 过期时间管理</b>
-  - 每次新消息刷新TTL为7天(604800秒)
-  - 7天内有新消息: TTL持续刷新
-  - 7天无新消息: 自动过期删除
-  - 不活跃频道自动清理，节省内存
-
-  <b>5. Pipeline原子操作</b>
-  - 添加消息 + 保留150条 + 刷新TTL
-  - 一次性原子执行
-  - 避免并发问题
-  - 保证数据一致性
-
-  <b>6. 消息消费特点</b>
-  - 实时消费(不批量缓冲)
-  - 使用channel_id作为分区键
-  - 保证同一频道消息顺序
-  - 保证消息及时性
-
-  <b>7. 设计理念</b>
-  ✅ 缓存随消息产生自动维护
-  ✅ 与客户端读取行为完全解耦
-  ✅ 不活跃频道不占用缓存空间
-  ✅ 简化缓存管理逻辑
-
-  <b>8. 内存估算</b>
-  - 单频道: 150条 ≈ 15-30KB
-  - 10万活跃频道 ≈ 1.5-3GB
-  - 100万活跃频道 ≈ 15-30GB
-end note
+end
 
 @enduml
 ```
