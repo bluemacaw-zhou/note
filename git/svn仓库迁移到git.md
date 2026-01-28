@@ -6,6 +6,19 @@
 git svn clone -r 1962485:HEAD http://techsrv.wind.com.cn:8080/svn/Src/Wind.IM.FixRelay/release/ Wind.IM.FixRelay
 ```
 
+## 查看进度 (如果同步失败) 
+
+```shell
+git log -1 --all
+```
+
+# 从断点处从新同步
+
+```shell
+git svn fetch -r 2260125:2310124
+git svn fetch -r 2610125:HEAD
+```
+
 ## 创建本地分支
 
 ```txt
