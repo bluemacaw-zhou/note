@@ -6,7 +6,7 @@ skinparam handwritten false
 skinparam defaultFontSize 13
 skinparam arrowThickness 2
 
-title 查询会话消息流程 - 基于可见性控制
+title 查询频道消息流程 - 基于可见性控制
 
 actor 用户 as User
 participant "客户端" as Client
@@ -16,206 +16,165 @@ participant "Redis缓存" as Redis
 database "MongoDB" as MongoDB
 database "ClickHouse" as ClickHouse
 
-== 场景1A: 大量消息差值 - 读取Redis缓存 ==
+== 场景1: 同步频道消息 ==
 
-note over User, Redis
+note over User, MongoDB
   <b>适用场景:</b>
-  - 客户端离线期间产生大量消息
-  - client.session_version 与服务端版本差值很大
-  - 直接获取最新150条消息镜像
+  - 客户端已获取有变化的订阅
+  - 需要同步对应频道的消息
+  - 支持指定版本号范围或自动获取
 
   <b>请求参数:</b>
-  只需传 session_id
+  - channel_id: 必填
+  - since_version: 可选，起始版本号(不含)
+  - until_version: 可选，结束版本号(含)
 end note
 
-User -> Client: 登录后同步会话消息
+User -> Client: 同步频道消息
 
-Client -> Client: 检测版本差值
+Client -> Gateway: 同步频道消息
 note right
-    <b>判断逻辑:</b>
+  <b>请求参数:</b>
+  {
+    channel_id: "channel_A",
+    since_version: 100,
+    until_version: 105
+  }
 
-    本地: client.session_version = 100
-    推送: server.session_version = 300
-
-    差值 = 300 - 100 = 200 > 150
-
-    <b>判断:</b>
-    差值过大，读取缓存镜像
-end note
-
-Client -> Gateway: GET /messages/cache/{session_id}
-note right
-    <b>请求参数:</b>
-    {
-      session_id: "AB"
-    }
-
-    <b>说明:</b>
-    - 只传 session_id
-    - 不需要指定 seq 区间
-    - 直接获取最新150条
+  <b>参数说明:</b>
+  - since_version: 起始版本号(不含)
+  - until_version: 结束版本号(含)
+  - 预期消息数量: until_version - since_version = 5条
 end note
 
 Gateway -> StorageSvc: 转发查询请求
 
-StorageSvc -> Redis: LRANGE msg_cache:AB 0 -1
+StorageSvc -> Redis: 检查缓存是否存在
 note right
-    <b>Redis List 结构:</b>
-    Key: msg_cache:{session_id}
-    Type: List
+  <b>检查:</b>
+  查询 channel_A 的消息缓存是否存在
 
-    <b>一次性读取全部150条</b>
-    索引0是最新消息
+  <b>说明:</b>
+  - 缓存TTL为7天
+  - 每次新消息会重置TTL
+  - 存在说明7天内有消息
 end note
 
-Redis --> StorageSvc: 返回150条消息镜像
+Redis --> StorageSvc: 返回是否存在
 
-alt 缓存命中
+alt 缓存存在
 
-    StorageSvc --> Client: 返回消息列表(5ms)
+  StorageSvc -> Redis: 获取指定范围的消息
+  note right
+    <b>查询条件:</b>
+    channel_id: "channel_A"
+    seq范围: (100, 105]
+
+    <b>说明:</b>
+    - 获取 seq > 100 且 seq <= 105 的消息
+    - since_version=100(不含)
+  end note
+
+  Redis --> StorageSvc: 返回消息列表
+  note left
+    <b>返回示例(缓存不完整):</b>
+    [
+      { seq: 103, content: "msg 103", ... },
+      { seq: 104, content: "msg 104", ... },
+      { seq: 105, content: "msg 105", ... }
+    ]
+
+    <b>说明:</b>
+    返回3条消息，但预期5条(101-105)
+  end note
+
+  StorageSvc -> StorageSvc: 校验消息完整性
+  note right
+    <b>完整性校验:</b>
+    预期数量: 105 - 100 = 5条
+    实际数量: 3条
+
+    <b>判断:</b>
+    3 < 5 → 缓存不完整
+  end note
+
+  alt 消息完整
+
+    StorageSvc --> Client: 返回消息列表
     note left
-        {
-          messages: [
-            {seq: 300, content: "最新", ...},
-            {seq: 299, content: "...", ...},
-            ...,
-            {seq: 151, content: "最旧", ...}
-          ],
-          count: 150,
-          cache_hit: true
-        }
-
-        <b>客户端处理:</b>
-        - 写入本地消息副本
-        - 更新 client.session_version = 300
-        - 计算红点(最多99+)
+      <b>返回数据:</b>
+      {
+        messages: [
+          { seq: 101, content: "...", ... },
+          { seq: 102, content: "...", ... },
+          { seq: 103, content: "...", ... },
+          { seq: 104, content: "...", ... },
+          { seq: 105, content: "...", ... }
+        ]
+      }
     end note
 
-else 缓存未命中
+  else 消息不完整(缓存缺失部分消息)
 
-    StorageSvc -> MongoDB: 查询MongoDB
+    StorageSvc -> MongoDB: 查询完整消息区间
     note right
-        db.messages_202503.find({
-          session_id: "AB"
-        })
-        .sort({seq: -1})
-        .limit(150)
+      <b>查询条件:</b>
+      channel_id: "channel_A"
+      seq范围: (100, 105]
+      按seq升序排序
 
-        <b>直接返回，不重建缓存</b>
+      <b>说明:</b>
+      从DB获取完整的消息区间
+      确保返回所有5条消息(101-105)
     end note
 
-    MongoDB --> StorageSvc: 返回150条消息
-
-    StorageSvc --> Client: 返回消息列表(50ms)
+    MongoDB --> StorageSvc: 返回完整消息列表
     note left
-        {
-          messages: [...150条],
-          count: 150,
-          cache_hit: false
-        }
+      <b>返回数据:</b>
+      [
+        { seq: 101, content: "...", ... },
+        { seq: 102, content: "...", ... },
+        { seq: 103, content: "...", ... },
+        { seq: 104, content: "...", ... },
+        { seq: 105, content: "...", ... }
+      ]
     end note
+
+    StorageSvc --> Client: 返回完整消息列表
+
+  end
+
+else 缓存不存在
+
+  StorageSvc -> MongoDB: 查询消息区间
+  note right
+    <b>查询条件:</b>
+    channel_id: "channel_A"
+    seq范围: (100, 105]
+    按seq升序排序
+
+    <b>说明:</b>
+    缓存不存在，直接查询DB
+    返回指定区间的所有消息
+  end note
+
+  MongoDB --> StorageSvc: 返回消息列表
+  note left
+    <b>返回数据:</b>
+    [
+      { seq: 101, content: "...", ... },
+      { seq: 102, content: "...", ... },
+      { seq: 103, content: "...", ... },
+      { seq: 104, content: "...", ... },
+      { seq: 105, content: "...", ... }
+    ]
+  end note
+
+  StorageSvc --> Client: 返回消息列表
 
 end
 
 Client --> User: 显示消息
-
-== 场景1B: 短时间丢包 - 查询MongoDB补齐 ==
-
-note over User, MongoDB
-  <b>适用场景:</b>
-  - 短时间网络波动导致消息推送丢失
-  - 需要补齐特定 seq 区间的消息
-  - 客户端本地副本有 gap
-
-  <b>请求参数:</b>
-  session_id + seq 区间
-end note
-
-User -> Client: 检测到消息 seq 不连续
-
-Client -> Client: 检测消息 gap
-note right
-    <b>检测逻辑:</b>
-
-    本地最新: client.session_version = 100
-    推送消息: seq = 105
-
-    gap = 105 - 100 - 1 = 4
-    缺失 seq: 101, 102, 103, 104
-
-    <b>判断:</b>
-    存在 gap，需要补齐消息
-end note
-
-Client -> Gateway: GET /messages/range
-note right
-    <b>请求参数:</b>
-    {
-      session_id: "AB",
-      min_seq: 101,  // 缺失的最小 seq
-      max_seq: 104,  // 缺失的最大 seq
-      limit: 100     // 防止区间过大
-    }
-
-    <b>说明:</b>
-    - 必须传 session_id
-    - 必须传 seq 区间
-    - 精确补齐缺失消息
-end note
-
-Gateway -> StorageSvc: 转发查询请求
-
-StorageSvc -> MongoDB: 查询指定 seq 区间
-note right
-    <b>查询条件:</b>
-    db.messages_202503.find({
-      session_id: "AB",
-      seq: {
-        $gte: 101,  // min_seq
-        $lte: 104   // max_seq
-      }
-    })
-    .sort({seq: 1})  // 升序返回
-    .limit(100)
-
-    <b>说明:</b>
-    - 精确查询缺失区间
-    - 不读取 Redis 缓存
-    - 直接查询 MongoDB
-end note
-
-MongoDB --> StorageSvc: 返回缺失的消息
-
-StorageSvc --> Client: 返回消息列表(10-20ms)
-note left
-    {
-      messages: [
-        {seq: 101, content: "...", ...},
-        {seq: 102, content: "...", ...},
-        {seq: 103, content: "...", ...},
-        {seq: 104, content: "...", ...}
-      ],
-      count: 4
-    }
-
-    <b>客户端处理:</b>
-    - 填充本地消息副本 gap
-    - 更新 client.session_version = 104
-    - 继续处理 seq=105 的推送消息
-end note
-
-Client -> Client: 填充滑动窗口
-note right
-    <b>滑动窗口处理:</b>
-
-    1. 将缺失消息填入滑动窗口
-    2. 检测窗口是否无 gap
-    3. 逐条消费窗口消息
-    4. 更新本地版本号
-    5. 计算红点
-end note
-
-Client --> User: 显示完整消息列表
 
 == 场景2: 查询历史消息(MongoDB跨月查询) - 聊天窗口内向上滑动 ==
 
@@ -419,7 +378,7 @@ end note
 
 User -> Client: 搜索"公司A"最近3个月的文件消息
 
-Client -> Gateway: POST /sessions/search
+Client -> Gateway: POST /channels/search
 note right
     参数:
     {
@@ -497,7 +456,7 @@ end note
 StorageSvc --> Client: 返回会话列表(200-600ms)
 note right
     {
-      sessions: [
+      channels: [
         {
           session_id: "group_123",
           session_name: "技术交流群",
@@ -609,23 +568,20 @@ Client --> User: 显示会话消息
 == 总结 ==
 
 note over User, ClickHouse
-<b>四种查询场景总结:</b>
+<b>三种查询场景总结:</b>
 
-<b>场景1A: 大量消息差值 - 读取Redis缓存</b>
-- 触发条件: client.session_version与服务端差值 > 150
-- 请求参数: 只需 session_id
-- 数据源: Redis List (msg_cache:{session_id})
-- 返回: 最新150条消息镜像
-- 性能: 5ms (命中), 50ms (未命中查MongoDB)
-- 适用: 离线期间大量消息场景
-
-<b>场景1B: 短时间丢包 - 查询MongoDB补齐</b>
-- 触发条件: 检测到消息 seq 不连续
-- 请求参数: session_id + seq 区间 (min_seq, max_seq)
-- 数据源: MongoDB (精确查询区间)
-- 返回: 缺失 seq 区间的消息
-- 性能: 10-20ms
-- 适用: 网络波动导致消息推送丢失
+<b>场景1: 同步频道消息</b>
+- 触发条件: 客户端已获取有变化的订阅
+- 请求参数: channel_id + since_version + until_version
+- 查询流程:
+  1. 检查Redis缓存是否存在
+  2. 缓存存在 → 获取指定范围的消息
+  3. 校验消息完整性（实际数量 vs 预期数量）
+  4. 消息不完整 → 降级MongoDB查询完整区间
+  5. 缓存不存在 → 直接查询MongoDB
+- 数据源: Redis Sorted Set (优先) → MongoDB (降级)
+- 性能: Redis缓存完整 <5ms, MongoDB降级 10-20ms
+- 完整性保障: 确保返回连续的消息序列
 
 <b>场景2: 查询历史消息(MongoDB跨月查询)</b>
 - 触发条件: 用户在聊天窗口内向上滑动到顶部
@@ -660,8 +616,8 @@ note over User, ClickHouse
 - 适用: 按公司/类型/时间等组合条件搜索会话
 
 <b>核心设计原则:</b>
-✅ 场景1A和1B: 私聊场景不涉及可见性检查
-✅ 场景2和3: 群聊场景需检查UserSessionState
+✅ 场景1: 私聊场景不涉及可见性检查
+✅ 场景2和3: 群聊场景需检查UserSubscription
 ✅ join_version控制可见性起点(后加入成员只能看加入后的消息)
 ✅ leave_version控制可见性终点(离开后的消息不可见)
 ✅ 可见性范围: join_version <= version <= leave_version
@@ -669,10 +625,15 @@ note over User, ClickHouse
 ✅ 性能优于应用层后置过滤
 
 <b>场景选择策略:</b>
-✅ 大量消息差值(>150) → 场景1A (Redis缓存)
-✅ 短时间丢包(gap检测) → 场景1B (MongoDB区间查询)
+✅ 同步频道消息 → 场景1 (Redis优先 → MongoDB降级)
 ✅ 历史消息查询 → 场景2 (MongoDB跨月查询)
 ✅ 复杂条件搜索 → 场景3 (ClickHouse聚合)
+
+<b>Redis缓存优势:</b>
+✅ 使用有序集合,seq作为score
+✅ 支持按seq范围查询
+✅ 完整性校验机制
+✅ 降级策略保障数据完整性
 end note
 
 @enduml
