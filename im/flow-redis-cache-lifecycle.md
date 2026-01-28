@@ -6,7 +6,7 @@ skinparam handwritten false
 skinparam defaultFontSize 13
 skinparam arrowThickness 2
 
-title Redis消息缓存构建与过期管理流程
+title Redis消息缓存创建与重建流程
 
 database "MongoDB\n(主库)" as MongoDB
 participant "Change Stream\n同步服务" as ChangeStream
@@ -14,19 +14,19 @@ participant "MQ队列\n(Kafka/RabbitMQ)" as MQ
 participant "Redis缓存服务\n(消费者)" as CacheSvc
 database "Redis" as Redis
 
-== 1. 消息写入触发 ==
+== 1. 新消息触发缓存创建/更新 ==
 
-MongoDB -> ChangeStream: Change Stream监听\noperationType=insert
+MongoDB -> ChangeStream: Change Stream监听\n新消息插入事件
 note right
   <b>监听范围:</b>
   - 所有 messages_* collection
-  - operationType: insert, update, delete
+  - operationType: insert
 
-  <b>监听到的数据:</b>
+  <b>监听到的消息:</b>
   {
     _id: ObjectId("..."),
     seq: 12345,
-    session_id: "AB",
+    channel_id: "AB",
     content: "你好",
     from_id: "A",
     msg_type: "text",
@@ -41,7 +41,7 @@ note right
   {
     msg_id: ObjectId转字符串,
     seq: 12345,
-    session_id: "AB",
+    channel_id: "AB",
     content: "你好",
     from_id: "A",
     msg_type: "text",
@@ -49,22 +49,13 @@ note right
     status: 0
   }
 
-  <b>保留所有客户端需要的字段</b>
-end note
-
-ChangeStream -> MQ: 【实时】发送消息变更事件
-note right
-  <b>增量同步场景:</b>
-  - 不批量缓冲
-  - 实时发送到 MQ
-  - 保证消息及时性
-
   <b>说明:</b>
-  与ClickHouse批量同步不同
-  Redis缓存需要实时性
+  保留所有客户端需要的字段
 end note
+
+ChangeStream -> MQ: 实时发送消息事件
 note right
-  <b>发送到 MQ Topic:</b>
+  <b>发送到MQ:</b>
   topic: message_change_events
 
   <b>消息体:</b>
@@ -72,7 +63,7 @@ note right
     event_type: "insert",
     msg_id: "...",
     seq: 12345,
-    session_id: "AB",
+    channel_id: "AB",
     content: "你好",
     from_id: "A",
     msg_type: "text",
@@ -81,9 +72,10 @@ note right
     timestamp: "2025-03-10 10:05:31"
   }
 
-  <b>分区键:</b>
-  使用 session_id 作为分区键
-  保证同一会话消息顺序
+  <b>说明:</b>
+  - 不批量缓冲，实时发送
+  - 使用 channel_id 作为分区键
+  - 保证同一频道消息顺序
 end note
 
 == 2. Redis缓存服务消费 ==
@@ -114,47 +106,63 @@ note right
   - 减少内存占用
 end note
 
-CacheSvc -> Redis: Pipeline操作（原子性）
+CacheSvc -> Redis: Pipeline操作(原子性)
 note right
-  <b>Redis Pipeline 命令:</b>
+  <b>操作步骤:</b>
 
-  key = msg_cache:{session_id}
+  key: msg_cache:{channel_id}
   例如: msg_cache:AB
 
-  1. LPUSH msg_cache:AB {json_message}
-     // 从左侧插入最新消息
+  1. 添加消息到有序集合
+     score: seq (12345)
+     value: JSON序列化的消息
 
-  2. LTRIM msg_cache:AB 0 149
-     // 保留最新150条 (索引 0-149)
-     // 自动删除第151条及之后的消息
+  2. 保留最新150条
+     删除排序最前面的旧消息
+     只保留排名靠后的150条
 
-  3. EXPIRE msg_cache:AB 604800
-     // 刷新过期时间为7天
-     // 604800秒 = 7 * 24 * 3600
+  3. 刷新过期时间为7天
+     TTL: 604800秒 (7 * 24 * 3600)
 
-  <b>Pipeline保证原子性</b>
+  <b>说明:</b>
+  Pipeline保证原子性执行
 end note
 
-Redis -> Redis: 执行Pipeline
+Redis -> Redis: 执行Pipeline并更新缓存
 note right
-  <b>执行结果:</b>
+  <b>变更前(缓存不存在):</b>
+  msg_cache:AB → 不存在
 
-  LPUSH: 返回列表当前长度
-  LTRIM: OK
-  EXPIRE: 1 (成功设置过期时间)
+  <b>变更后(缓存创建):</b>
+  msg_cache:AB = {
+    score: 12345,
+    value: {"seq":12345, "content":"你好", ...}
+  }
+  TTL: 604800秒
 
-  <b>数据结构:</b>
-  msg_cache:AB = [
-    {seq:12345, content:"你好", ...},  // 最新
-    {seq:12344, content:"在吗", ...},
-    {seq:12343, content:"test", ...},
+  <b>或</b>
+
+  <b>变更前(缓存已存在):</b>
+  msg_cache:AB = {
+    12196: {...},  // 最旧
     ...
-    {seq:12196, content:"old", ...}    // 最旧(第150条)
-  ]
+    12344: {...}   // 最新
+  }
+  共150条，TTL: 300000秒
 
-  <b>索引说明:</b>
-  - 索引0: 最新消息 (seq最大)
-  - 索引149: 最旧消息 (seq最小)
+  <b>变更后(缓存更新):</b>
+  msg_cache:AB = {
+    12197: {...},  // 12196被淘汰
+    ...
+    12344: {...},
+    12345: {"seq":12345, "content":"你好", ...}  // 新增
+  }
+  共150条，TTL: 604800秒(刷新)
+
+  <b>说明:</b>
+  - 有序集合按seq自动排序
+  - 支持按seq范围查询
+  - 每次新消息都刷新TTL
 end note
 
 Redis --> CacheSvc: Pipeline执行成功
@@ -165,331 +173,150 @@ note right
   MQ移除该消息
 end note
 
-== 3. 客户端读取缓存 ==
-
-participant "客户端" as Client
-participant "消息服务" as MsgSvc
-
-Client -> MsgSvc: 请求会话消息
-note right
-  <b>请求:</b>
-  GET /messages/session/{session_id}/cache
-
-  <b>场景:</b>
-  - 登录后同步会话消息
-  - 离线期间有大量消息产生
-  - 一次性获取最新150条
-
-  <b>用途:</b>
-  - 构建本地消息副本
-  - 显示最新消息
-  - 计算红点(最多显示99+)
-end note
-
-MsgSvc -> Redis: LRANGE msg_cache:AB 0 -1
-note right
-  <b>一次性读取全部150条:</b>
-
-  LRANGE msg_cache:AB 0 -1
-  // -1 表示到列表末尾
-  // 返回所有缓存消息(最多150条)
-
-  <b>不分页:</b>
-  客户端总是一次性获取150条
-  用于离线期间大量消息场景
-end note
-
-Redis --> MsgSvc: 返回消息列表 (JSON数组)
-
-MsgSvc -> MsgSvc: 反序列化消息
-note right
-  将 JSON 字符串数组
-  转换为消息对象数组
-
-  按 seq 降序排列
-  (最新的在前)
-end note
-
-MsgSvc --> Client: 返回150条消息
-note left
-  <b>响应:</b>
-  {
-    messages: [
-      {seq:12345, content:"你好", ...},
-      {seq:12344, content:"在吗", ...},
-      ...
-      {seq:12196, content:"old", ...}
-    ],
-    count: 150,
-    cache_hit: true
-  }
-
-  <b>客户端处理:</b>
-  - 写入本地消息副本
-  - 计算红点(最多显示99+)
-  - 显示最新消息
-end note
-
-== 4. 缓存未命中处理 ==
-
-Client -> MsgSvc: 请求会话消息
-
-MsgSvc -> Redis: LRANGE msg_cache:AB 0 -1
-
-Redis --> MsgSvc: key不存在或已过期
-
-MsgSvc -> MongoDB: 直接查询数据库
-note right
-  <b>MongoDB查询:</b>
-
-  db.messages_202503.find({
-    session_id: "AB"
-  })
-  .sort({seq: -1})
-  .limit(150)
-
-  <b>从数据库加载最新150条</b>
-end note
-
-MongoDB --> MsgSvc: 返回150条消息
-
-MsgSvc --> Client: 直接返回，不重建缓存
-note left
-  <b>响应:</b>
-  {
-    messages: [...150条消息],
-    count: 150,
-    cache_hit: false
-  }
-
-  <b>说明:</b>
-  - 直接返回数据库查询结果
-  - 不重建 Redis 缓存
-  - 缓存重建只在新消息产生时触发
-end note
-
-note over MsgSvc
-  <b>设计理念:</b>
-
-  缓存未命中不重建的原因:
-  1. 避免客户端读取行为影响缓存
-  2. 缓存重建由消息产生驱动
-  3. 减少不必要的缓存写入
-  4. 不活跃会话不占用缓存空间
-end note
-
-== 5. 缓存重建时机 ==
+== 3. 缓存重建时机 ==
 
 note over MongoDB, Redis
-  <b>重建时机：只在新消息产生时</b>
+  <b>缓存创建与重建的核心机制</b>
 
-  触发条件：
-  ✅ Change Stream 监听到新消息插入
-  ✅ Redis缓存服务消费到 insert 事件
-  ✅ 执行 LPUSH + LTRIM + EXPIRE
+  <b>触发条件(唯一):</b>
+  ✅ Change Stream监听到新消息插入
+  ✅ Redis缓存服务消费到insert事件
+  ✅ 执行Pipeline操作更新缓存
 
-  不触发条件：
-  ❌ 客户端读取缓存未命中
+  <b>不触发条件:</b>
+  ❌ 客户端读取缓存
   ❌ 缓存过期
-  ❌ 撤回消息更新
+  ❌ 消息撤回
 
-  <b>设计理念：</b>
-  缓存随消息产生自动维护
-  与客户端读取行为解耦
+  <b>设计理念:</b>
+  - 缓存随消息产生自动维护
+  - 与客户端读取行为解耦
+  - 不活跃频道不占用缓存空间
 end note
 
 MongoDB -> ChangeStream: 新消息产生
 note right
-  operationType: insert
+  <b>场景示例:</b>
+  频道AB已经7天没有消息
+  缓存已过期被删除
 
-  新消息写入触发缓存更新
+  现在产生一条新消息
+  seq: 15000
 end note
 
-ChangeStream -> MQ: 发送 insert 事件
+ChangeStream -> MQ: 发送insert事件
 
 MQ -> CacheSvc: 消费消息事件
 
-CacheSvc -> Redis: LPUSH + LTRIM + EXPIRE
+CacheSvc -> Redis: Pipeline操作
 note right
-  <b>缓存自动重建/更新:</b>
+  <b>缓存自动重建:</b>
 
-  无论缓存是否存在:
-  1. LPUSH 插入最新消息
-  2. LTRIM 保持150条
-  3. EXPIRE 刷新7天
+  变更前:
+  msg_cache:AB → 不存在(已过期)
+
+  变更后:
+  msg_cache:AB = {
+    score: 15000,
+    value: {"seq":15000, ...}
+  }
+  TTL: 604800秒
 
   <b>效果:</b>
-  - 缓存不存在: 自动创建
-  - 缓存存在: 追加消息
-  - 缓存过期: 重新激活
+  - 缓存不存在时自动创建
+  - 缓存存在时追加消息
+  - 缓存过期时重新激活
+  - 始终保持最新150条
 end note
 
-== 6. 撤回消息处理 ==
-
-MongoDB -> ChangeStream: 监听到消息更新
-note right
-  <b>Change Stream事件:</b>
-  operationType: update
-
-  <b>更新内容:</b>
-  {
-    documentKey: {_id: ObjectId("...")},
-    updateDescription: {
-      updatedFields: {
-        status: 1
-      }
-    }
-  }
-
-  <b>消息被撤回</b>
-end note
-
-ChangeStream -> MQ: 发送撤回通知消息
-note right
-  <b>撤回处理策略:</b>
-
-  不更新缓存中的旧消息
-  而是发送一条新的撤回通知消息
-
-  <b>新消息内容:</b>
-  {
-    msg_type: "recall",
-    seq: 新seq,
-    recalled_seq: 被撤回的seq,
-    session_id: "AB"
-  }
-end note
-
-MQ -> CacheSvc: 消费撤回通知消息
-
-CacheSvc -> Redis: 正常插入缓存
-note right
-  <b>撤回消息也是普通消息:</b>
-
-  LPUSH msg_cache:AB {recall_message}
-  LTRIM msg_cache:AB 0 149
-  EXPIRE msg_cache:AB 604800
-
-  <b>缓存只是镜像:</b>
-  - 不维护消息状态
-  - 撤回通知作为新消息缓存
-  - 客户端本地处理撤回逻辑
-end note
-
-note over Client
-  <b>客户端本地处理撤回:</b>
-
-  1. 接收缓存中的所有消息
-  2. 识别 msg_type="recall"
-  3. 根据 recalled_seq 更新本地副本
-  4. 将被撤回消息 status 改为 1
-  5. 显示 [已撤回] 或系统提示
-
-  <b>缓存只负责镜像传输</b>
-  <b>客户端负责构建正确副本</b>
-end note
-
-== 7. Redis过期与清理 ==
+== 4. Redis过期与清理 ==
 
 Redis -> Redis: TTL倒计时
 note right
   <b>过期机制:</b>
 
-  每次 EXPIRE 命令刷新 TTL
+  每次新消息刷新TTL为7天
   如果7天内没有新消息:
-  - TTL 倒计时到 0
-  - Redis 自动删除 key
+  - TTL倒计时到0
+  - Redis自动删除key
 
   <b>内存回收:</b>
-  - 惰性删除: 读取时检查过期
+  - 惰性删除: 访问时检查过期
   - 定期删除: 后台随机抽查过期key
 end note
 
 note over Redis
-  <b>过期后的效果:</b>
+  <b>缓存过期示例:</b>
 
-  msg_cache:AB 被删除
-  下次读取直接查MongoDB
-  不会触发缓存重建
+  变更前:
+  msg_cache:AB = {150条消息}
+  TTL: 10秒
 
-  <b>适用场景:</b>
-  - 不活跃的会话自动清理
+  7天内无新消息...
+
+  变更后:
+  msg_cache:AB → 已删除
+  TTL: -2 (不存在)
+
+  <b>效果:</b>
+  - 不活跃频道自动清理
   - 节省内存空间
-
-  <b>重新激活:</b>
-  当会话再次有新消息产生时
-  Change Stream 触发缓存重建
+  - 下次新消息产生时自动重建
 end note
 
 == 关键设计总结 ==
 
 note over MongoDB, Redis
-  <b>1. Redis List 数据结构</b>
-  - LPUSH: 从左侧插入最新消息
-  - LTRIM: 保持最新150条
-  - LRANGE key 0 -1: 一次性读取全部150条
-  - 索引0始终是最新消息
+  <b>1. 缓存创建与重建机制(核心)</b>
+  ✅ 唯一触发条件: 新消息产生
+  ✅ 流程: MongoDB → Change Stream → MQ → Redis缓存服务
+  ✅ 缓存不存在时自动创建
+  ✅ 缓存存在时追加消息
+  ✅ 缓存过期时重新激活
+  ❌ 不在客户端读取时创建/重建
+  ❌ 不在缓存过期时重建
+  ❌ 不在消息撤回时重建
 
-  <b>2. 容量控制</b>
-  - 每次插入后 LTRIM 0 149
-  - 自动淘汰第151条及之后的消息
-  - 始终保持150条
+  <b>2. 数据结构</b>
+  - 使用有序集合(Sorted Set)
+  - score = seq(消息序号)
+  - value = JSON序列化的消息
+  - 自动按seq升序排列
+  - 支持按seq范围查询
 
-  <b>3. 过期时间管理</b>
-  - 每次插入消息: EXPIRE key 604800
-  - 7天内有新消息: TTL刷新为7天
+  <b>3. 容量控制</b>
+  - 每次插入后保持最新150条
+  - 自动淘汰seq最小的旧消息
+  - 150条约15-30KB/频道
+
+  <b>4. 过期时间管理</b>
+  - 每次新消息刷新TTL为7天(604800秒)
+  - 7天内有新消息: TTL持续刷新
   - 7天无新消息: 自动过期删除
-  - 每次新消息都刷新过期时间
+  - 不活跃频道自动清理，节省内存
 
-  <b>4. Pipeline原子操作</b>
-  - LPUSH + LTRIM + EXPIRE 一次性执行
+  <b>5. Pipeline原子操作</b>
+  - 添加消息 + 保留150条 + 刷新TTL
+  - 一次性原子执行
   - 避免并发问题
   - 保证数据一致性
 
-  <b>5. 缓存命中策略（重点变更）</b>
-  - 命中: 直接返回Redis全部150条
-  - 未命中: 查MongoDB，不重建缓存 ✅
-  - 延迟: 命中<5ms, 未命中<50ms
-
-  <b>6. 缓存重建时机（核心设计）</b>
-  ✅ 只在新消息产生时重建/更新
-  ✅ Change Stream → MQ → Redis缓存服务
-  ❌ 不在客户端读取时重建
-  ❌ 不在缓存过期时重建
-  ❌ 不在撤回消息时重建
-
-  <b>7. 客户端读取行为</b>
-  - 总是一次性获取150条消息
-  - 不分页查询
-  - 用于离线期间大量消息场景
-  - 构建本地消息副本
-  - 计算红点(最多显示99+)
-
-  <b>8. 撤回消息处理（重要变更）</b>
-  - 缓存不维护消息状态 ✅
-  - 撤回通知作为新消息插入缓存 ✅
-  - 客户端本地处理撤回逻辑 ✅
-  - 缓存只是消息镜像，不实时更新 ✅
-
-  <b>9. 消息消费流程</b>
-  MongoDB → Change Stream → MQ → Redis缓存服务 → Redis
-
-  <b>增量同步特点:</b>
-  - 不批量缓冲
-  - 实时发送到MQ
+  <b>6. 消息消费特点</b>
+  - 实时消费(不批量缓冲)
+  - 使用channel_id作为分区键
+  - 保证同一频道消息顺序
   - 保证消息及时性
 
-  <b>10. 内存优化</b>
-  - 只缓存必需字段
-  - JSON序列化存储
-  - 150条约15-30KB/会话
-  - 100万会话约15-30GB
+  <b>7. 设计理念</b>
+  ✅ 缓存随消息产生自动维护
+  ✅ 与客户端读取行为完全解耦
+  ✅ 不活跃频道不占用缓存空间
+  ✅ 简化缓存管理逻辑
 
-  <b>11. 设计理念</b>
-  - 缓存随消息产生自动维护 ✅
-  - 与客户端读取行为解耦 ✅
-  - 不活跃会话不占用缓存空间 ✅
-  - 客户端本地构建正确消息副本 ✅
+  <b>8. 内存估算</b>
+  - 单频道: 150条 ≈ 15-30KB
+  - 10万活跃频道 ≈ 1.5-3GB
+  - 100万活跃频道 ≈ 15-30GB
 end note
 
 @enduml
