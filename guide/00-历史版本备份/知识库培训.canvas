@@ -1,0 +1,145 @@
+{
+	"edges":[
+		{"color":"2","fromFloating":false,"fromNode":"b230f4ef84c7de4e","fromSide":"bottom","id":"3d3990833944fc48","styleAttributes":{},"toFloating":false,"toNode":"61c9cf3dbad373a7","toSide":"top"},
+		{"color":"6","fromFloating":false,"fromNode":"e4be0b6079458d29","fromSide":"right","id":"379dd4fd06faa039","styleAttributes":{},"toFloating":false,"toNode":"82483b7c0b31821d","toSide":"left"},
+		{"color":"6","fromFloating":false,"fromNode":"699d2ef2a21fb46f","fromSide":"bottom","id":"07e248c2b57a5649","styleAttributes":{},"toFloating":false,"toNode":"8bc81071f178bb58","toSide":"top"},
+		{"color":"6","fromNode":"82483b7c0b31821d","fromSide":"bottom","id":"3210a60a36b16b59","styleAttributes":{},"toFloating":false,"toNode":"699d2ef2a21fb46f","toSide":"top"},
+		{"color":"4","fromFloating":false,"fromNode":"61c9cf3dbad373a7","fromSide":"bottom","id":"209703c9bf50f0c2","styleAttributes":{},"toFloating":false,"toNode":"e4be0b6079458d29","toSide":"top"},
+		{"color":"3","fromFloating":false,"fromNode":"8bc81071f178bb58","fromSide":"right","id":"fd3c93101d828b29","styleAttributes":{},"toFloating":false,"toNode":"4cdc8a9801cf9a92","toSide":"left"},
+		{"color":"3","fromNode":"4cdc8a9801cf9a92","fromSide":"bottom","id":"50da980c957da3ec","styleAttributes":{},"toFloating":false,"toNode":"ffd333649527e3b2","toSide":"top"},
+		{"color":"3","fromNode":"ffd333649527e3b2","fromSide":"bottom","id":"b79fa2fd19c21862","styleAttributes":{},"toFloating":false,"toNode":"2a878f642f83c780","toSide":"top"},
+		{"color":"3","fromNode":"2a878f642f83c780","fromSide":"right","id":"ecc08814442185b7","styleAttributes":{},"toFloating":false,"toNode":"d9f83fa713be73ea","toSide":"left"},
+		{"color":"2","fromFloating":false,"fromNode":"d9f83fa713be73ea","fromSide":"bottom","id":"0a4f2820f3ee4ef6","styleAttributes":{},"toFloating":false,"toNode":"c98a2a509c6f92fa","toSide":"top"}
+	],
+	"metadata":{
+		"frontmatter":{},
+		"startNode":"b230f4ef84c7de4e",
+		"version":"1.0-1.0"
+	},
+	"nodes":[
+		{"color":"#80b1e5","height":1890,"id":"a91d53f4b9bd9501","label":"基本知识","type":"group","width":1610,"x":200,"y":-720},
+		{"color":"6","height":2300,"id":"a40c1c29177754ca","label":"接入AI","type":"group","width":1260,"x":2240,"y":240},
+		{"color":"5","height":2280,"id":"638767f82360c764","label":"基础简介","type":"group","width":960,"x":-1280,"y":-700},
+		{
+			"color":"6",
+			"height":740,
+			"id":"4cdc8a9801cf9a92",
+			"styleAttributes":{"textAlign":null},
+			"text":"# AI \n\n## Copliot 插件配置\n\n### 安装 `Copilot` 插件\n访问 [http://10.100.86.71/WindCodeCopilot/authorize/token](http://10.100.86.71/WindCodeCopilot/authorize/token), 万得之家扫码，点击复制按钮获取token\n\n### 填写参数\n- **模型名称** 和 **BaseURL**\n![01-Copilot配置指南](../08-AI集成/01-Copilot配置指南.md)\n- **DisplayName**： 随便取一个\n- **API Key**: 第一步获取的token\n\n> 1. 勾选**CORS**, obsidian 会存在的请求头会导致跨域问题\n> 2. 如果是思维链模型，勾选 `Reasoner`\n> 3. 如果模型能识别图片：勾选 `vision`, 例如使用 `gpt-4` 模型\n> 4. 如果模型支持联网收索: 勾选 `websearch`\n",
+			"type":"text",
+			"width":1120,
+			"x":2320,
+			"y":300
+		},
+		{
+			"color":"2",
+			"height":460,
+			"id":"b230f4ef84c7de4e",
+			"styleAttributes":{"textAlign":"center"},
+			"text":"# AI + 知识库\n\n**WFG - FT**\n",
+			"type":"text",
+			"width":877,
+			"x":-1240,
+			"y":-680
+		},
+		{
+			"color":"3",
+			"height":460,
+			"id":"61c9cf3dbad373a7",
+			"styleAttributes":{"textAlign":"center"},
+			"text":"# 知识库安装\n\n![01-什么是Obsidian](../01-基础入门/01-什么是Obsidian.md#安装)\n\n## 使用 Git 团队内同步文档\n\n$Obsidian + Git = IDE + Git$\n\n",
+			"type":"text",
+			"width":877,
+			"x":-1240,
+			"y":120
+		},
+		{
+			"color":"#6ab6f0",
+			"height":474,
+			"id":"8bc81071f178bb58",
+			"styleAttributes":{},
+			"text":"# 连接\n\n![04-双链与标签系统](../01-基础入门/04-双链与标签系统.md#双链)",
+			"type":"text",
+			"width":745,
+			"x":296,
+			"y":680
+		},
+		{
+			"color":"#69aee2",
+			"height":455,
+			"id":"699d2ef2a21fb46f",
+			"styleAttributes":{},
+			"text":"# 标签\n\n![04-双链与标签系统](../01-基础入门/04-双链与标签系统.md#标签)\n\n\n>  和标题不同, `# 标题`，标题和 `#` 之间有空格",
+			"type":"text",
+			"width":745,
+			"x":980,
+			"y":-40
+		},
+		{
+			"color":"#6ab6f0",
+			"height":436,
+			"id":"82483b7c0b31821d",
+			"styleAttributes":{},
+			"text":"# Frontmatter\n![04-项目管理](../04-项目管理/01-Projects插件使用.md#属性)\n\n>  这里可以定义文档的，作者，标签，日期，等等元数据\n",
+			"type":"text",
+			"width":745,
+			"x":540,
+			"y":-696
+		},
+		{
+			"color":"2",
+			"height":640,
+			"id":"e4be0b6079458d29",
+			"styleAttributes":{},
+			"text":"# 插件安装\n\n![06-Templater模板系统](../05-效率工具/06-Templater模板系统.md#插件)\n\n\n![04-Git版本控制](../07-团队协作/04-Git版本控制.md)",
+			"type":"text",
+			"width":920,
+			"x":-1283,
+			"y":720
+		},
+		{
+			"color":"6",
+			"height":500,
+			"id":"ffd333649527e3b2",
+			"styleAttributes":{"textAlign":"center"},
+			"text":"# \n## 提问模式\n1. `Chat`, 自由问答\n2. `vault`, 基于知识库问答\n    - 基于标签的索引\n\n## 常用 prompts\n1. 保存在 `copilot-conversations` 目录下\n2. 保存对话为单独笔记 `copilot-conversation`\n\n## 引用文件\n\n1. 和文档引用一样，使用 `[[]]` 符号引用文件",
+			"type":"text",
+			"width":1120,
+			"x":2320,
+			"y":1180
+		},
+		{
+			"color":"4",
+			"height":820,
+			"id":"d9f83fa713be73ea",
+			"styleAttributes":{"textAlign":"center"},
+			"text":"# 完善文档\n\n## 发版记录从邮件📧 --> 文档\n\n![06-Templater模板系统](../05-效率工具/06-Templater模板系统.md#模板)\n\n> 飞书的快捷键也是 `/` 健\n\n- 在**发布记录**目录下，新建文件，引用文档\n- 如实填写，使用链接关联 -->  技术设计文档，需求文档\n- \n\n## 管理文档 \n![01-Projects插件使用](../04-项目管理/01-Projects插件使用.md)\n",
+			"type":"text",
+			"width":1440,
+			"x":3840,
+			"y":700
+		},
+		{
+			"color":"2",
+			"height":580,
+			"id":"c98a2a509c6f92fa",
+			"styleAttributes":{"textAlign":"center"},
+			"text":"## Q&A\n\n>  知识库的本质不是存储，而是让集体智慧流动起来",
+			"type":"text",
+			"width":1300,
+			"x":4100,
+			"y":1940
+		},
+		{
+			"color":"6",
+			"height":580,
+			"id":"2a878f642f83c780",
+			"styleAttributes":{"textAlign":"center"},
+			"text":"# Obsidian-MCP\n\n##  在 Cline / Trae / Cursor ... 中，配置MCP\n\n```json\n    \"obsidian\": {\n      \"command\": \"npx\",\n      \"args\": [\n        \"-y\",\n        \"obsidian-mcp\",\n        \"valut 位置\"\n      ],\n\n      \"disabled\": false,\n      \"alwaysAllow\": [\n        \"list-available-vaults\",\n        \"search-vault\",\n        \"read-note\"\n      ]\n    },\n```\n \n```mermaid\ngraph LR\n\nObsidian --读取文档--> Cline\n\nCline --代码整理成笔记--> Obsidian\n\n\n\n```\n",
+			"type":"text",
+			"width":1060,
+			"x":2340,
+			"y":1940
+		}
+	]
+}

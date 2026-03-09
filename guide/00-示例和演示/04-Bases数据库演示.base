@@ -1,0 +1,54 @@
+filters:
+  and:
+    - file.folder == "guide/00-示例和演示/项目管理"
+    - file.ext == "md"
+views:
+  - type: table
+    name: 项目总览
+    groupBy:
+      property: 负责人
+      direction: ASC
+    order:
+      - file.name
+      - 项目名称
+      - 状态
+      - 优先级
+      - 负责人
+      - 进度
+      - 开始日期
+      - 截止日期
+    sort:
+      - property: 优先级
+        direction: ASC
+      - property: 截止日期
+        direction: ASC
+    columnSize:
+      file.name: 220
+      note.项目名称: 180
+      note.负责人: 110
+      note.状态: 100
+      note.优先级: 90
+      note.进度: 90
+      note.开始日期: 130
+      note.截止日期: 130
+  - type: cards
+    name: 看板视图
+    groupBy:
+      property: 状态
+      direction: ASC
+    order:
+      - 项目名称
+      - 负责人
+      - 优先级
+      - 进度
+      - 截止日期
+  - type: cards
+    name: 卡片视图
+    groupBy:
+      property: 负责人
+      direction: ASC
+    order:
+      - file.name
+      - banner
+      - file.ctime
+    image: note.banner

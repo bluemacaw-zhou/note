@@ -1,0 +1,44 @@
+{
+	"nodes":[
+		{"id":"a100000000000001","type":"text","x":-3400,"y":-1100,"width":850,"height":480,"color":"1","text":"# 🎯 Obsidian 功能演示\n\n**AMS 特供版 知识库培训**\n\n> 从基础到精通，120分钟完整演示"},
+		{"id":"a200000000000001","type":"text","x":-3400,"y":-200,"width":900,"height":740,"color":"2","text":"# 📚 什么是 Obsidian\n\n![01-什么是Obsidian](01-基础入门/01-什么是Obsidian.md)\n\n## 核心特点\n- 本地 Markdown 存储\n- 双向链接系统\n- 图谱可视化"},
+		{"id":"a300000000000001","type":"text","x":-2240,"y":-200,"width":800,"height":800,"color":"2","text":"# 🔗 双向链接\n\n![04-双链与标签系统](01-基础入门/04-双链与标签系统.md)\n\n### 链接语法\n```markdown\n[[笔记名]]\n[[笔记名#标题]]\n```\n\n点击即可跳转"},
+		{"id":"a310000000000001","type":"text","x":-2240,"y":860,"width":650,"height":440,"color":"2","text":"# 🏷️ 标签系统\n\n![04-双链与标签系统](01-基础入门/04-双链与标签系统.md#标签)\n\n### 标签语法\n```markdown\n#前端/React\n#projects/release\n```\n\n按 `#` 分类组织"},
+		{"id":"a400000000000001","type":"text","x":-1080,"y":-200,"width":650,"height":600,"color":"3","text":"# 🎨 Canvas 白板\n\n![01-Canvas白板完全指南](02-核心插件/01-Canvas白板完全指南.md)\n\n### 核心功能\n- 无限画布自由布局\n- 思维导图、流程图\n- PPT 演示模式"},
+		{"id":"a500000000000001","type":"text","x":-1080,"y":560,"width":650,"height":540,"color":"3","text":"# 📊 Bases 数据库\n\n![02-Bases数据库](02-核心插件/02-Bases数据库.md)\n\n### 数据视图\n- 表格视图\n- 卡片视图\n- 日历视图\n\n类似 Notion Database"},
+		{"id":"a600000000000001","type":"text","x":80,"y":-200,"width":650,"height":600,"color":"4","text":"# 📋 Projects 管理\n\n![01-Projects插件使用](04-项目管理/01-Projects插件使用.md)\n\n### 项目管理\n- 项目分组\n- 状态跟踪\n- 进度可视化"},
+		{"id":"a610000000000001","type":"text","x":80,"y":560,"width":650,"height":540,"color":"4","text":"# 📝 Kanban 看板\n\n![03-Kanban看板管理](04-项目管理/03-Kanban看板管理.md)\n\n### 任务管理\n- 拖拽式任务卡片\n- 状态流转可视化\n- 敏捷开发支持"},
+		{"id":"a700000000000001","type":"text","x":1240,"y":-200,"width":650,"height":600,"color":"5","text":"# ⌨️ EasyTyping\n\n![01-EasyTyping自动排版](05-效率工具/01-EasyTyping自动排版.md)\n\n### 自动排版\n- 中英文自动空格\n- 标点符号优化\n- 一键格式化"},
+		{"id":"a710000000000001","type":"text","x":1240,"y":560,"width":650,"height":540,"color":"5","text":"# 📋 模板系统\n\n![06-Templater模板系统](05-效率工具/06-Templater模板系统.md)\n\n### 动态模板\n- 日期/时间变量\n- 自定义模板语法\n- 快速创建笔记"},
+		{"id":"a800000000000001","type":"text","x":2400,"y":-200,"width":650,"height":600,"color":"6","text":"# 🤖 Copilot\n\n![01-Copilot配置指南](08-AI集成/01-Copilot配置指南.md)\n\n### AI 功能\n- 基于知识库问答\n- 文档润色优化\n- 自动生成流程图"},
+		{"id":"a810000000000001","type":"text","x":2400,"y":560,"width":650,"height":540,"color":"6","text":"# 🔌 MCP 集成\n\n![02-Obsidian CLI完全指南](08-AI集成/02-Obsidian%20CLI完全指南.md)\n\n### 外部工具\n- 与 Cline/Cursor 集成\n- 代码整理成笔记\n- 双向知识流动"},
+		{"id":"a900000000000001","type":"text","x":3560,"y":-200,"width":650,"height":600,"color":"6","text":"# 🔄 Git 版本控制\n\n![04-Git版本控制](07-团队协作/04-Git版本控制.md)\n\n### 版本管理\n- 自动提交/推送\n- 分支策略\n- 冲突解决"},
+		{"id":"a910000000000001","type":"text","x":3560,"y":560,"width":650,"height":540,"color":"6","text":"# 🏗️ 知识库架构\n\n![01-知识库架构设计](07-团队协作/01-知识库架构设计.md)\n\n### 架构原则\n- MOC 索引系统\n- 标签体系设计\n- 目录组织规范"},
+		{"id":"aa00000000000001","type":"text","x":4720,"y":100,"width":600,"height":480,"color":"1","text":"# ❓ Q&A\n\n### 常见问题\n![C-常见问题FAQ](附录/C-常见问题FAQ.md)\n\n### 学习资源\n![D-学习资源](附录/D-学习资源.md)\n\n---\n\n**💡 知识库的本质不是存储，\n而是让集体智慧流动起来**"},
+		{"id":"group1","type":"group","x":-3520,"y":-320,"width":2160,"height":1840,"label":"01-基础入门","color":"2"},
+		{"id":"group2","type":"group","x":-1160,"y":-280,"width":820,"height":1560,"label":"02-核心插件","color":"3"},
+		{"id":"group3","type":"group","x":0,"y":-280,"width":820,"height":1560,"label":"04-05 项目与效率","color":"4"},
+		{"id":"group4","type":"group","x":1160,"y":-280,"width":3240,"height":1560,"label":"07-08 协作与AI","color":"6"}
+	],
+	"edges":[
+		{"id":"e00000000000001","fromNode":"a100000000000001","fromSide":"bottom","toNode":"a200000000000001","toSide":"top","color":"1"},
+		{"id":"e00000000000002","fromNode":"a200000000000001","fromSide":"right","toNode":"a300000000000001","toSide":"left","color":"2"},
+		{"id":"e00000000000003","fromNode":"a300000000000001","fromSide":"bottom","toNode":"a310000000000001","toSide":"top","color":"2"},
+		{"id":"e00000000000004","fromNode":"a310000000000001","fromSide":"right","toNode":"a400000000000001","toSide":"left","color":"3"},
+		{"id":"e00000000000005","fromNode":"a400000000000001","fromSide":"bottom","toNode":"a500000000000001","toSide":"top","color":"3"},
+		{"id":"e00000000000006","fromNode":"a500000000000001","fromSide":"right","toNode":"a600000000000001","toSide":"left","color":"4"},
+		{"id":"e00000000000007","fromNode":"a600000000000001","fromSide":"bottom","toNode":"a610000000000001","toSide":"top","color":"4"},
+		{"id":"e00000000000008","fromNode":"a610000000000001","fromSide":"right","toNode":"a700000000000001","toSide":"left","color":"5"},
+		{"id":"e00000000000009","fromNode":"a700000000000001","fromSide":"bottom","toNode":"a710000000000001","toSide":"top","color":"5"},
+		{"id":"e00000000000010","fromNode":"a710000000000001","fromSide":"right","toNode":"a800000000000001","toSide":"left","color":"6"},
+		{"id":"e00000000000011","fromNode":"a800000000000001","fromSide":"bottom","toNode":"a810000000000001","toSide":"top","color":"6"},
+		{"id":"e00000000000012","fromNode":"a810000000000001","fromSide":"right","toNode":"a900000000000001","toSide":"left","color":"6"},
+		{"id":"e00000000000013","fromNode":"a900000000000001","fromSide":"bottom","toNode":"a910000000000001","toSide":"top","color":"6"},
+		{"id":"e00000000000014","fromNode":"a910000000000001","fromSide":"right","toNode":"aa00000000000001","toSide":"left","color":"1"}
+	],
+	"metadata":{
+		"version":"1.0-1.0",
+		"frontmatter":{},
+		"startNode":"a100000000000001"
+	}
+}
