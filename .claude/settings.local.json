@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mv:*)",
+      "Bash(mv docker:*)",
+      "Bash(grep:*)",
+      "Bash(sed:*)"
+    ]
+  }
+}
