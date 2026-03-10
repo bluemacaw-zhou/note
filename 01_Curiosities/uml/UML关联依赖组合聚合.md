@@ -1,3 +1,10 @@
+---
+type: curiosity
+topic: UML
+date: 2026-03-10
+tags: ["uml", "关联", "依赖", "组合", "聚合"]
+---
+
 #uml
 #关联依赖
 #组合聚合

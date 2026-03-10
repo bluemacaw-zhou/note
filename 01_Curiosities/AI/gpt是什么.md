@@ -1,3 +1,10 @@
+---
+type: curiosity
+topic: AI
+date: 2026-03-10
+tags: ["AI", "gpt"]
+---
+
 g --> 生成式 根据上文 给出下一个token
 基于概率 而不是 基于思考
 两个大数相乘 给出的结果是错误的

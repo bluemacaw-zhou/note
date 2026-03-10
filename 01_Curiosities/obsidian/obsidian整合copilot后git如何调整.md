@@ -1,3 +1,10 @@
+---
+type: curiosity
+topic: Obsidian
+date: 2026-03-10
+tags: ["obsidian", "Copilot", "git"]
+---
+
 #git #copilot 
 其实插件的目录我是想要追踪的 但是对于copilot插件 这里面会配置api key 这个是不能发布到github上面的 基于我这样的诉求 又该怎么配置
 

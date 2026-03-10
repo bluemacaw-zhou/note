@@ -1,3 +1,10 @@
+---
+type: journal
+sphere: Life
+date: 2026-03-10
+tags: ["Life", "baby", "NAS搭建"]
+---
+
 # NAS 完整搭建指南
 
 > 适用场景：家庭媒体服务器 + 文件备份 + 智能下载 + 全屋代理

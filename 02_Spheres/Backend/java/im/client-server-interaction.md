@@ -1,3 +1,10 @@
+---
+type: journal
+sphere: Backend
+date: 2026-03-10
+tags: ["Backend", "java", "IM", "PlantUML"]
+---
+
 ```plantuml
 @startuml 客户端服务端交互与三层架构
 !theme plain

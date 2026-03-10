@@ -1,3 +1,10 @@
+---
+type: curiosity
+topic: Obsidian
+date: 2026-03-10
+tags: ["obsidian", "emoji toolbar"]
+---
+
 Emoji Toolbar 是 Obsidian 的一个社区插件，让你可以轻松在笔记中插入表情符号。这里是详细的使用指南：
 
 ## 安装步骤

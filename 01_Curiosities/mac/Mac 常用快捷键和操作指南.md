@@ -1,3 +1,10 @@
+---
+type: curiosity
+topic: Mac
+date: 2026-03-10
+tags: ["mac"]
+---
+
 # **Mac 常用快捷键指南**
 
 ## **一、窗口管理 - Rectangle**

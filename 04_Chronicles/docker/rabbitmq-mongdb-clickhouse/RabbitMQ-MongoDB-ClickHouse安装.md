@@ -1,3 +1,10 @@
+---
+type: chronicle
+source: 历史笔记迁移
+distilled: 2026-03-10
+tags: ["docker", "rabbitmq-mongdb-clickhouse", "RabbitMQ", "MongoDB", "ClickHouse"]
+---
+
 # RabbitMQ + MongoDB + ClickHouse 安装
 
 ```yaml

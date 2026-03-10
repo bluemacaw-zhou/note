@@ -1,3 +1,10 @@
+---
+type: journal
+sphere: Backend
+date: 2026-03-10
+tags: ["Backend", "java", "mongodb"]
+---
+
 ## 查询条件对照表
 
 | SQL    | MQL            |

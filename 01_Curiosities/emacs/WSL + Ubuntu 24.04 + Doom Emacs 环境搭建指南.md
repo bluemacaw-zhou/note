@@ -1,3 +1,10 @@
+---
+type: curiosity
+topic: Emacs
+date: 2026-03-10
+tags: ["emacs", "WSL", "Ubuntu", "Doom Emacs"]
+---
+
 # WSL + Ubuntu 24.04 + Doom Emacs 环境搭建指南
 
 ## 项目目标

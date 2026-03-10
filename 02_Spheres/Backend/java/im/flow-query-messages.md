@@ -1,3 +1,10 @@
+---
+type: journal
+sphere: Backend
+date: 2026-03-10
+tags: ["Backend", "java", "IM"]
+---
+
 ```plantuml
 @startuml 查询消息流程
 !theme plain

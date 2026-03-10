@@ -1,3 +1,10 @@
+---
+type: chronicle
+source: 历史笔记迁移
+distilled: 2026-03-10
+tags: ["docker", "mongodb", "docker-compose"]
+---
+
 ## 查看 MongoDB 日志
 docker-compose logs -f mongodb
 

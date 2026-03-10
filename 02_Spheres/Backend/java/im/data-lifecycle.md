@@ -1,3 +1,10 @@
+---
+type: journal
+sphere: Backend
+date: 2026-03-10
+tags: ["Backend", "java", "IM", "MongoDB", "ClickHouse", "Redis"]
+---
+
 ```plantuml
 @startuml 数据生命周期V5-MongoDB+ClickHouse+Redis
 !theme plain

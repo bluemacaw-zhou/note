@@ -1,3 +1,10 @@
+---
+type: journal
+sphere: Backend
+date: 2026-03-10
+tags: ["Backend", "java", "IM"]
+---
+
 ```plantuml
 @startuml 发送消息流程V5-MongoDB同步方案
 !theme plain

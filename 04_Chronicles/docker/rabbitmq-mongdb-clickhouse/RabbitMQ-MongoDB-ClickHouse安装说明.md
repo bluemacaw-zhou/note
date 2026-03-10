@@ -1,3 +1,10 @@
+---
+type: chronicle
+source: 历史笔记迁移
+distilled: 2026-03-10
+tags: ["docker", "rabbitmq-mongdb-clickhouse", "RabbitMQ", "MongoDB", "ClickHouse"]
+---
+
 # MongoDB + RabbitMQ + ClickHouse 数据处理管道
 
 基于 Docker Compose 的部署方案，提供完整的数据存储、消息队列和分析能力。

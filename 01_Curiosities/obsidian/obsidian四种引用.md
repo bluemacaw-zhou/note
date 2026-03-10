@@ -1,3 +1,10 @@
+---
+type: curiosity
+topic: Obsidian
+date: 2026-03-10
+tags: ["obsidian", "引用"]
+---
+
 #obsidian
 引用的方法是输入 `[[]]` 
 

@@ -1,3 +1,10 @@
+---
+type: curiosity
+topic: Obsidian
+date: 2026-03-10
+tags: ["obsidian", "git", "文件过滤"]
+---
+
 我来帮你从git管理中移除这些Obsidian配置文件。由于这些文件已经被git跟踪，需要先从git缓存中删除，然后添加到.gitignore中。
 
 ## 步骤1：从git缓存中删除文件

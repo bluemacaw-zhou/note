@@ -1,3 +1,10 @@
+---
+type: curiosity
+topic: Docker
+date: 2026-03-10
+tags: ["docker"]
+---
+
 ## 公司拉取镜像
 
 ```shell

@@ -1,3 +1,10 @@
+---
+type: curiosity
+topic: Docker
+date: 2026-03-10
+tags: ["docker", "compose"]
+---
+
 ## 启动服务
 docker-compose up -d
 

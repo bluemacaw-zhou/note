@@ -1,3 +1,10 @@
+---
+type: curiosity
+topic: Nginx
+date: 2026-03-10
+tags: ["nginx"]
+---
+
 ## 启动
 nginx.exe
 

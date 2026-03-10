@@ -1,3 +1,10 @@
+---
+type: curiosity
+topic: Linux
+date: 2026-03-10
+tags: ["linux"]
+---
+
 ## 查看剩余内存指令
 
 ```shell

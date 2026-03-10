@@ -1,3 +1,10 @@
+---
+type: journal
+sphere: Backend
+date: 2026-03-10
+tags: ["Backend", "源码", "druid", "数据库连接池", "问题排查"]
+---
+
 # Druid 连接创建卡死问题排查全流程
 
 ## 问题现象

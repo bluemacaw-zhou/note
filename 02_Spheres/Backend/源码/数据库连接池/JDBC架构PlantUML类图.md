@@ -1,3 +1,10 @@
+---
+type: journal
+sphere: Backend
+date: 2026-03-10
+tags: ["Backend", "源码", "JDBC", "PlantUML", "数据库连接池"]
+---
+
 ## 1. DriverManager工作流程图
 
 ```plantuml

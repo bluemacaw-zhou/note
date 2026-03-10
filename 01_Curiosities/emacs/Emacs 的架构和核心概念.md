@@ -1,3 +1,10 @@
+---
+type: curiosity
+topic: Emacs
+date: 2026-03-10
+tags: ["emacs"]
+---
+
 ## Emacs 架构组件图
 
 ```

@@ -1,3 +1,10 @@
+---
+type: journal
+sphere: Backend
+date: 2026-03-10
+tags: ["Backend", "AI", "RAG"]
+---
+
 ## LLM
 预训练模型 = 海量知识 (语料) + 算法 (算力)
 

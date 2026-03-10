@@ -1,3 +1,10 @@
+---
+type: curiosity
+topic: AI
+date: 2026-03-10
+tags: ["AI", "NLP", "NLU", "NLG"]
+---
+
 ## NPLP
 
 nattural Language Processing 

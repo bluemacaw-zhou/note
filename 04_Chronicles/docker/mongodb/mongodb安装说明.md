@@ -1,3 +1,10 @@
+---
+type: chronicle
+source: 历史笔记迁移
+distilled: 2026-03-10
+tags: ["docker", "mongodb"]
+---
+
 # MongoDB 安装说明
 
 ## 前置准备

@@ -1,3 +1,10 @@
+---
+type: journal
+sphere: Backend
+date: 2026-03-10
+tags: ["Backend", "源码", "数据库连接池", "druid"]
+---
+
 #sourcecode
 #druid
 ### 核心概念

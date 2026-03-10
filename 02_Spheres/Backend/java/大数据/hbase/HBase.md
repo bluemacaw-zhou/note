@@ -1,3 +1,10 @@
+---
+type: journal
+sphere: Backend
+date: 2026-03-10
+tags: ["Backend", "java", "大数据", "hbase"]
+---
+
 ### HBase读写框架
 
 ![[HBase-01-读写框架.excalidraw]]

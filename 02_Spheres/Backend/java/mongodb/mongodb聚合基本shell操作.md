@@ -1,3 +1,10 @@
+---
+type: journal
+sphere: Backend
+date: 2026-03-10
+tags: ["Backend", "java", "mongodb"]
+---
+
 ## 检索books集合中所有文档计数
 
 ```shell

@@ -1,3 +1,10 @@
+---
+type: curiosity
+topic: Obsidian
+date: 2026-03-10
+tags: ["obsidian", "Canvas"]
+---
+
 ## Canvas 如何支持自由移动画布
 
 **内置功能：**

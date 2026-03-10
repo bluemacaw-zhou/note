@@ -1,3 +1,10 @@
+---
+type: curiosity
+topic: Obsidian
+date: 2026-03-10
+tags: ["obsidian", "Markdown"]
+---
+
 #obsidian
 #markdown
 # 这是大标题

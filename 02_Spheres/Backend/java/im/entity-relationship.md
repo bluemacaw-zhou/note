@@ -1,3 +1,10 @@
+---
+type: journal
+sphere: Backend
+date: 2026-03-10
+tags: ["Backend", "java", "IM", "PlantUML"]
+---
+
 ```plantuml
 @startuml 完整实体关系图-IM系统
 !theme plain

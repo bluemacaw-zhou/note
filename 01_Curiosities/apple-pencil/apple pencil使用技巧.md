@@ -1,3 +1,10 @@
+---
+type: curiosity
+topic: Apple Pencil
+date: 2026-03-10
+tags: ["apple-pencil", "Apple Pencil"]
+---
+
 ## 怎么换行
 屏幕中央底部有换行的按钮
 

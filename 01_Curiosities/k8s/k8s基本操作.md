@@ -1,3 +1,10 @@
+---
+type: curiosity
+topic: K8s
+date: 2026-03-10
+tags: ["k8s"]
+---
+
 ## 查看集群状态
 
 ```shell

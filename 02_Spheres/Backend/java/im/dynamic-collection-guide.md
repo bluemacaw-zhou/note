@@ -1,3 +1,10 @@
+---
+type: journal
+sphere: Backend
+date: 2026-03-10
+tags: ["Backend", "java", "IM", "MongoDB"]
+---
+
 # MongoDB 动态 Collection 使用指南
 
 ## 问题背景
