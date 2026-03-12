@@ -1,3 +1,10 @@
+---
+type: curiosity
+topic: Mac
+date: 2026-03-10
+tags: [Clash, SSH, 代理]
+---
+
 # Clash Verge SSH 环境下切换节点排查指南
 
 ## 背景
