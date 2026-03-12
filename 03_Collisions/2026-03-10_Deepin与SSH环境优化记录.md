@@ -52,5 +52,55 @@ tags: [排障记录, Deepin, SSH, OpenVPN, 运维]
 2. **稳定性**：解决了因空闲导致的 VPN 闪断，SSH 链路具有极强的容错性。
 3. **舒适度**：深度优化了 Deepin 终端的 **24-bit TrueColor** 显示效果，彻底告别单色模式。
 
+## 6. 深度排障：Clash Verge 与 OpenVPN/SSH 的冲突解决
+
+在 Mac Mini 作为客户端的环境下，引入 Clash Verge 后出现了新的 SSH 断连问题。以下是详细的排查与精确优化记录：
+
+### 6.1 问题现象
+- **报错**：`Read from remote host 10.8.0.1: Connection reset by peer`。
+- **特征**：SSH 连接在一段时间后（或传输大流量时）必然断开，即使 OpenVPN 显示连接正常。
+
+### 6.2 核心冲突点分析 (Q&A)
+- **Q: 为什么开启 Clash 后 SSH 会断开？**
+  - **A**: Clash Verge 的 TUN 模式会创建虚拟网卡并接管系统流量。如果未配置绕过，它会劫持发往 VPN 内网（10.8.0.1）的流量。由于两个虚拟网卡（Clash 的 `utun` 和 OpenVPN 的 `utun4`）在争夺路由，导致 SSH 心跳包被错误拦截或重置。
+- **Q: 为什么会提示 Connection reset by peer？**
+  - **A**: 这是典型的 **MTU (最大传输单元)** 冲突。VPN 隧道有额外的封装开销，如果 MTU 保持默认的 1500，SSH 的大包在经过隧道时会因超过物理链路限制而被丢弃或分片失败。
+
+### 6.3 精确优化方案
+针对上述问题，实施了以下三个维度的精确修改：
+
+#### 1. Clash Verge 避让规则 (Bypass)
+在 **设置 -> 系统代理 -> 绕过列表** 以及 **TUN 模式 -> 排除自定义网段** 中精确添加：
+- `10.8.0.0/24` (OpenVPN 内网段)
+- `47.116.161.91/32` (阿里云公网 IP)
+**覆写配置 (Override)** 强制直连：
+```yaml
+rules:
+  - IP-CIDR,10.8.0.0/24,DIRECT
+  - IP-CIDR,47.116.161.91/32,DIRECT
+```
+
+#### 2. OpenVPN MTU 强制约束 (核心修复)
+在客户端 `config.ovpn` 中添加以下参数，解决大流量断连：
+```text
+tun-mtu 1400
+mssfix 1360
+```
+*验证：连接后执行 `ifconfig utun4` 确认 MTU 已降至 1400。*
+
+#### 3. SSH 客户端精确保活
+在 Mac 本地 `~/.ssh/config` 中为 VPN 网段设置高频心跳：
+```bash
+Host 10.8.0.*
+    ServerAliveInterval 15
+    ServerAliveCountMax 3
+    TCPKeepAlive yes
+```
+
+### 6.4 最终验证结果
+- **路径验证**：`traceroute -n 10.8.0.1` 第一跳直接到达目标，证明 Clash 绕过成功。
+- **MTU 验证**：`ping -D -s 1360 10.8.0.1` 确认大包不分片且 0 丢包通过。
+- **稳定性预期**：配合 macOS 的休眠优化（防止自动睡眠），SSH 连接可实现跨昼夜不断开。
+
 ---
-*记录人：Gemini CLI & 用户 (2026-03-10)*
+*记录人：Gemini CLI & 用户 (2026-03-10 23:50)*
