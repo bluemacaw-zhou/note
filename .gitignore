@@ -17,6 +17,9 @@ copilot/copilot-conversations/
 .obsidian/cache/
 .trash/
 
+# === Claude ===
+.claude/settings.local.json
+
 # === 系统文件 ===
 .DS_Store
 Thumbs.db
