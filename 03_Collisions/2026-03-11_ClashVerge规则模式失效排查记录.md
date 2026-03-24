@@ -1,3 +1,12 @@
+---
+type: experiment
+status: completed
+source: 突发任务: Clash Verge规则模式失效
+started: 2026-03-11
+updated: 2026-03-11
+tags: [Clash, 代理, 网络, 规则模式]
+---
+
 # Clash Verge 规则模式失效排查记录
 
 **日期**：2026-03-11
