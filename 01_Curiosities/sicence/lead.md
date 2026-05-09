@@ -1,10 +1,15 @@
 ## 物理
+
 **视频：BBC《物理学秘史》(The Secrets of Quantum Physics / Chemistry)**
 
 ## 数学
+
 **YouTube 频道 - 3Blue1Brown**
+
 **YouTube 频道 - Veritasium (科学发现史系列)**
+
 **《数学：确定性的丧失》(Mathematics: The Loss of Certainty) - 莫里斯·克莱因**
+
 **《数与形》- 华罗庚 / 维特多·乌斯宾斯基**
 
 ```markdown
@@ -18,11 +23,16 @@
 ```
 
 ## 生物
+
 **视频：PBS《中生代：进化的故事》**
+
 **视频：BBC《生命的起源》**
 
 ## 化学
+
 **视频：BBC《化学：一段挥发性的历史》(Chemistry: A Volatile History)**
+
+---
 
 资源
 
